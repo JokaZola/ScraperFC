@@ -1,0 +1,24 @@
+import setuptools
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+    
+setuptools.setup(
+    name = 'ScraperFC',
+    version = '0.0.1',
+    author = 'Owen Seymour',
+    author_email = 'osmour043@gmail.com',
+    description = 'Package for scraping soccer data from a variety of sources.',
+    long_description = long_description,
+    long_description_content_type = 'text/markdown',
+    url = '',
+    packages = setuptools.find_packages(),
+    keywords = ["soccer","football","Premier League","Serie A",
+                "La Liga","Bundesliga","Ligue 1"],
+    classifiers = [
+        'Programming Language :: Python :: 3',
+        'Operating System :: OS Independent'
+    ],
+    python_requires = '>=3.6'
+)
+  
