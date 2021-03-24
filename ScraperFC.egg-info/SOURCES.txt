@@ -1,0 +1,6 @@
+README.md
+setup.py
+ScraperFC.egg-info/PKG-INFO
+ScraperFC.egg-info/SOURCES.txt
+ScraperFC.egg-info/dependency_links.txt
+ScraperFC.egg-info/top_level.txt
