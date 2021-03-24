@@ -1,9 +1,9 @@
-from ScraperFC.FBRef import FBRef
-from ScraperFC.Understat import Understat
-from ScraperFC.FiveThirtyEight import FiveThirtyEight
+from FBRef import FBRef
+from Understat import Understat
+from FiveThirtyEight import FiveThirtyEight
 from IPython.display import clear_output
 import pandas as pd
-from ScraperFC.shared_functions import check_season
+from shared_functions import check_season
 
 
 class ScraperFC:
