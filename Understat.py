@@ -7,7 +7,7 @@ import numpy as np
 import datetime
 from IPython.display import clear_output
 import re
-from ScraperFC.shared_functions import check_season
+from shared_functions import check_season
 
 
 class Understat:

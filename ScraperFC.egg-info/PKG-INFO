@@ -1,12 +1,11 @@
 Metadata-Version: 2.1
 Name: ScraperFC
-Version: 0.0.1
+Version: 0.0.2
 Summary: Package for scraping soccer data from a variety of sources.
 Home-page: https://github.com/oseymour/ScraperFC
 Author: Owen Seymour
 Author-email: osmour043@gmail.com
 License: UNKNOWN
-Download-URL: https://github.com/oseymour/ScraperFC/archive/refs/tags/0.0.1.tar.gz
 Description: # Welcome
         This is ScraperFC, a Python package that I hope will give more people access to soccer stats. It's still very much a work in progress and I'm currently a full-time grad student so progress may be slow. I am trying to chip away at it though, so please, reach out with any problems you encounter or features you want to see added!
         
