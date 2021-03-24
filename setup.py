@@ -11,7 +11,7 @@ setuptools.setup(
     description = 'Package for scraping soccer data from a variety of sources.',
     long_description = long_description,
     long_description_content_type = 'text/markdown',
-    url = '',
+    url = 'https://github.com/oseymour/ScraperFC',
     packages = setuptools.find_packages(),
     keywords = ["soccer","football","Premier League","Serie A",
                 "La Liga","Bundesliga","Ligue 1"],
