@@ -84,7 +84,7 @@ class FBRef:
         lg_tbl.drop(columns=["xGD/90"], inplace=True)
         if normalize:
             lg_tbl.iloc[:,3:14] = lg_tbl.iloc[:,3:14].divide(lg_tbl["MP"], axis="rows")
-        return lg_tbl
+        return df
     
     
     def scrape_standard(self, year, league, normalize=False):
