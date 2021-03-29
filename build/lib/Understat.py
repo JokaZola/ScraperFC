@@ -109,6 +109,7 @@ class Understat:
         for i,link in enumerate(links):
             
             print('Scraping match ' + str(i+1) + '/' + str(len(links)) + ' from Understat in the ' + season + ' season.')
+            print(link)
             match = self.scrape_match(link)
             matches = matches.append(match, ignore_index=True)
             clear_output()

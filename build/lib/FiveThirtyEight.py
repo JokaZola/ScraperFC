@@ -31,7 +31,6 @@ class FiveThirtyEight:
         
         
     def scrape_matches(self, year, save=False):
-        
         if not check_season(year,'EPL','FiveThirtyEight'):
             return -1
         
