@@ -21,7 +21,6 @@ class ScraperFC:
         
     
     def scrape_matches(self, year, save=False):
-        
         if not check_season(year,'EPL','All'):
             return -1
         
@@ -47,7 +46,6 @@ class ScraperFC:
         clear_output()
         
         for i in range(num_matches):
-            
             print('Scraping match ' + str(i+1) + '/' + str(num_matches) + ' in the ' + season + ' EPL season.')
             
             fbref_link = fbref_links[i]
