@@ -1,7 +1,7 @@
 FBRef.py
 FiveThirtyEight.py
+Main.py
 README.md
-ScraperFC.py
 Understat.py
 setup.py
 shared_functions.py
