@@ -6,11 +6,22 @@ ScraperFC can be installed by running "pip install ScraperFC" from the command l
 
 # Sources
 For now, ScraperFC can get data from the following websites (all data is open-source and I am not affiliated with any of the sources):
-* [FBRef](#FBRef) [link](https://fbref.com/en/)
-* [Understat](#Understat) [link](https://understat.com/)
-* [FiveThirtyEight](#FiveThirtyEight) [link](https://projects.fivethirtyeight.com/soccer-predictions/)
+* [FBRef](#FBRef) ([link](https://fbref.com/en/))
+* [Understat](#Understat) ([link](https://understat.com/))
+* [FiveThirtyEight](#FiveThirtyEight) ([link](https://projects.fivethirtyeight.com/soccer-predictions/))
 
 # FBRef
+Both seasonal match data and seasonal squad stats can be scraped from FBRef. To use the FBRef module, run 
+'''
+import ScraperFC as sfc
+scraper = sfc.FBRef()
+#call FBRef function
+scraper.close()#closes the Selenium webdriver
+'''
+Any FBRef functions can then be called from the scraper object.
+
+To scrape match data for a season, call ''' scraper.scrape_matches(year,league,save ''' where 
+* '''year''' is the calendar year the season ended in. E.g. for the 2019/2020 season, enter 2020 (type int, not string)
 
 # Understat
 

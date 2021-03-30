@@ -18,6 +18,9 @@ class ScraperFC:
         self.fbref.close()
         self.understat.close()
         self.fte.close()
+        self.fbref.quit()
+        self.understat.quit()
+        self.fte.quit()
         
     
     def scrape_matches(self, year, save=False):

@@ -21,6 +21,7 @@ class FiveThirtyEight:
         
         
     def close(self):
+        self.driver.close()
         self.driver.quit()
         
         
