@@ -1,5 +1,0 @@
-FBRef
-FiveThirtyEight
-Main
-Understat
-shared_functions

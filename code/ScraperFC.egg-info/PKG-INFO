@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ScraperFC
-Version: 0.1.10
+Version: 0.1.15
 Summary: Package for scraping soccer data from a variety of sources.
 Home-page: https://github.com/oseymour/ScraperFC
 Author: Owen Seymour
@@ -28,6 +28,7 @@ Description: # Welcome
 Keywords: soccer,football,Premier League,Serie A,La Liga,Bundesliga,Ligue 1
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.6
 Description-Content-Type: text/markdown
