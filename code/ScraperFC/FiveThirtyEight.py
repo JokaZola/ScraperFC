@@ -7,7 +7,7 @@ import numpy as np
 import datetime
 from IPython.display import clear_output
 from zipfile import ZipFile
-from shared_functions import check_season
+from ScraperFC.shared_functions import check_season
 
 class FiveThirtyEight:
     
