@@ -12,16 +12,16 @@ For now, ScraperFC can get data from the following websites (all data is open-so
 
 # FBRef
 Both seasonal match data and seasonal squad stats can be scraped from FBRef. To use the FBRef module, run 
-'''
+```
 import ScraperFC as sfc
 scraper = sfc.FBRef()
-#call FBRef function
-scraper.close()#closes the Selenium webdriver
-'''
+# call FBRef function
+scraper.close()# closes the Selenium webdriver
+```
 Any FBRef functions can then be called from the scraper object.
 
-To scrape match data for a season, call ''' scraper.scrape_matches(year,league,save ''' where 
-* '''year''' is the calendar year the season ended in. E.g. for the 2019/2020 season, enter 2020 (type int, not string)
+To scrape match data for a season, call ```scraper.scrape_matches(year,league,save)``` where:
+* ```year``` is the calendar year the season ended in. E.g. for the 2019/2020 season, enter 2020 (type int, not string)
 
 # Understat
 
