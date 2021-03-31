@@ -20,8 +20,34 @@ scraper.close()# closes the Selenium webdriver
 ```
 Any FBRef functions can then be called from the scraper object.
 
-To scrape match data for a season, call ```scraper.scrape_matches(year,league,save)``` where:
-* ```year``` is the calendar year the season ended in. E.g. for the 2019/2020 season, enter 2020 (type int, not string)
+To scrape match data for a season, call ```scraper.scrape_matches(year, league, save)``` where:
+* ```year``` is the calendar year the season ended in. E.g. for the 2019/2020 season, enter 2020 (type int, not string).
+* ```league``` is the league you want data from. Options are "EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1".
+* ```save``` is a boolean option to save the output dataframe to a CSV. Default value is false.
+
+Individual matches can also be scraped with ```scraper.scrape_match(link, league)``` where:
+* ```link``` is the URL to the match you want to be scraped
+* ```leauge``` is the league the match was a part of. The only supported leagues are the "EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1".
+
+Squad seasonal data can be scraped with the following functions:
+* ```scraper.scrape_league_table(args)```
+* ```scraper.scrape_standard(args)```
+* ```scraper.scrape_gk(args)```
+* ```scraper.scrape_adv_gk(args)```
+* ```scraper.scrape_shooting(args)```
+* ```scraper.scrape_passing(args)```
+* ```scraper.scrape_passing_types(args)```
+* ```scraper.scrape_goal_shot_creation(args)```
+* ```scraper.scrape_defensive(args)```
+* ```scraper.scrape_possession(args)```
+* ```scraper.scrape_playing_time(args)```
+* ```scraper.scrape_misc(args)```
+* ```scraper.scrape_season(args)``` (This function returns all of the above tables in a dict)
+
+All of the above functions take the same three arguments:
+* ```year``` The calendar year the season ended in. E.g. for the 2019/2020 season, enter 2020 (type int, not string).
+* ```league``` The source league of the data. The only supported leagues are the "EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1".
+* ```normalize``` Option to normalize the table to per 90. Default value is false.
 
 # Understat
 

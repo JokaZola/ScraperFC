@@ -400,6 +400,12 @@ class FBRef:
             spliton = '-Premier-League'
         elif league == 'La Liga':
             spliton = '-La-Liga'
+        elif league == 'Bundesliga':
+            spliton = '-Bundesliga'
+        elif league == 'Serie A':
+            spliton = '-Serie-A'
+        elif league == 'Ligue 1':
+            spliton = '-Ligue-1'
         match = pd.Series()
         date = link.split(spliton)[0].split('-')[-3:]
         date = '-'.join(date)
