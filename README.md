@@ -1,3 +1,4 @@
+
 # Welcome
 This is ScraperFC, a Python package that I hope will give more people access to soccer stats. It's still very much a work in progress and I'm currently a full-time grad student so progress may be slow. I am trying to chip away at it though, so please, reach out with any problems you encounter or features you want to see added!
 
@@ -15,8 +16,8 @@ Both seasonal match data and seasonal squad stats can be scraped from FBRef. To 
 ```
 import ScraperFC as sfc
 scraper = sfc.FBRef()
-# call FBRef function
-scraper.close()# closes the Selenium webdriver
+# call function(s) with FBRef scraper object
+scraper.close() # closes the Selenium webdriver
 ```
 Any FBRef functions can then be called from the scraper object.
 
@@ -29,7 +30,7 @@ Individual matches can also be scraped with ```scraper.scrape_match(link, league
 * ```link``` is the URL to the match you want to be scraped
 * ```leauge``` is the league the match was a part of. The only supported leagues are the "EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1".
 
-Squad seasonal data can be scraped with the following functions:
+Squad seasonal data can be scraped with the following functions. Each function, except ```scrape_league_table()``` and ```scrape_season```, return 2 tables. The first table is stats for the squads (e.g. goals for), the second is stats versus the squads (e.g. goals against).
 * ```scraper.scrape_league_table(args)```
 * ```scraper.scrape_standard(args)```
 * ```scraper.scrape_gk(args)```
@@ -42,7 +43,7 @@ Squad seasonal data can be scraped with the following functions:
 * ```scraper.scrape_possession(args)```
 * ```scraper.scrape_playing_time(args)```
 * ```scraper.scrape_misc(args)```
-* ```scraper.scrape_season(args)``` (This function returns all of the above tables in a dict)
+* ```scraper.scrape_season(args)``` (This function returns all of the above tables in a dict.)
 
 All of the above functions take the same three arguments:
 * ```year``` The calendar year the season ended in. E.g. for the 2019/2020 season, enter 2020 (type int, not string).
@@ -50,31 +51,10 @@ All of the above functions take the same three arguments:
 * ```normalize``` Option to normalize the table to per 90. Default value is false.
 
 # Understat
+Documentation coming soon.
 
 # FiveThirtyEight
-
-# Capabilities
-As of now, ScraperFC has the following functionalities:
-* Scraping match data from the following sources (all data is open-source and I am not affiliated with any of the sources):
-    * [FBRef](https://fbref.com/en/)
-    * [Understat](https://understat.com/)
-    * [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
-* Scraping the following squad seasonal data from [FBRef](https://fbref.com/en/):
-    * League table
-    * Standard stats
-    * Goalkeeping and advanced goalkeeping
-    * Shooting
-    * Passing and passing types
-    * Goal and shot creation
-    * Defensive
-    * Possession
-    * Playing time
-    * Miscellaneous
-    * The above tables can be normalized to per 90 numbers, or just scraped 
-* The following leagues are supported for each source
-    * [FBRef](https://fbref.com/en/): EPL, La Liga, Bundesliga, Serie A, Ligue 1
-    * [Understat](https://understat.com/): coming soon
-    * [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/): coming soon
+Documentation coming soon.
 
 # Contact
 I'd love to hear whatever feedback, advice, criticisim, complaints, problems, errors, or new ideas you have or have come across while using ScraperFC! My email is osmour043@gmail.com.

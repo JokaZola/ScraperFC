@@ -9,7 +9,7 @@ def check_season(year,league,source):
     elif (source == 'FiveThirtyEight') and (year >= 2017):
         valid = True
     else: # all sources case
-        if year < 2018:
-            valid = True        
+        if year >= 2018:
+            valid = True
     return valid
         
