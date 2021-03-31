@@ -1,9 +1,9 @@
-from FBRef import FBRef
-from Understat import Understat
-from FiveThirtyEight import FiveThirtyEight
+from ScraperFC.FBRef import FBRef
+from ScraperFC.Understat import Understat
+from ScraperFC.FiveThirtyEight import FiveThirtyEight
 from IPython.display import clear_output
 import pandas as pd
-from shared_functions import check_season
+from ScraperFC.shared_functions import check_season
 
 
 class ScraperFC:
@@ -18,6 +18,9 @@ class ScraperFC:
         self.fbref.close()
         self.understat.close()
         self.fte.close()
+        self.fbref.quit()
+        self.understat.quit()
+        self.fte.quit()
         
     
     def scrape_matches(self, year, save=False):
@@ -27,7 +30,7 @@ class ScraperFC:
         print('Preparing to gather match data from Understat and FBRef.')
         season = str(year-1)+'-'+str(year)
         num_matches = 380
-        fbref_links = self.fbref.get_match_links(year)
+        fbref_links = self.fbref.get_match_links(year,'EPL')
         assert len(fbref_links) == num_matches
         understat_links = self.understat.get_match_links(year)
         assert len(understat_links) == num_matches
@@ -51,7 +54,7 @@ class ScraperFC:
             fbref_link = fbref_links[i]
             understat_link = understat_links[i]
             
-            fbref_match = self.fbref.scrape_match(fbref_link)
+            fbref_match = self.fbref.scrape_match(fbref_link,'EPL')
             understat_match = self.understat.scrape_match(understat_link)
             
             fbref_df = fbref_df.append(fbref_match, ignore_index=True)

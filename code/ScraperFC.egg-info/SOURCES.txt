@@ -2,7 +2,7 @@ README.md
 setup.py
 code/ScraperFC/FBRef.py
 code/ScraperFC/FiveThirtyEight.py
-code/ScraperFC/Main.py
+code/ScraperFC/ScraperFC.py
 code/ScraperFC/Understat.py
 code/ScraperFC/__init__.py
 code/ScraperFC/shared_functions.py

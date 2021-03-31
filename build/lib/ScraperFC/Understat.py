@@ -7,7 +7,7 @@ import numpy as np
 import datetime
 from IPython.display import clear_output
 import re
-from shared_functions import check_season
+from ScraperFC.shared_functions import check_season
 
 
 class Understat:
@@ -20,6 +20,7 @@ class Understat:
         
         
     def close(self):
+        self.driver.close()
         self.driver.quit()
         
         
