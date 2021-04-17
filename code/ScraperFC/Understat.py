@@ -52,7 +52,7 @@ class Understat:
     
     def remove_diff(self, string):
         string = string.split("-")[0]
-        return string.split("+")[0]
+        return float(string.split("+")[0])
         
         
     def scrape_match(self, link):
@@ -118,19 +118,19 @@ class Understat:
         links = self.get_match_links(year, league)
         cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
                 'Home Ast','Away Ast','Understat Home xG','Understat Away xG',
-                'Understat Home xA','Understat Away xA','Home xPts','Away xPts']
+                'Understat Home xA','Understat Away xA','Understat Home xPts','Understat Away xPts']
         matches = pd.DataFrame(columns=cols)
         
         for i,link in enumerate(links):
             print('Scraping match ' + str(i+1) + '/' + str(len(links)) + ' from Understat in the ' + season + ' season.')
-            print(link)
+#             print(link)
             match = self.scrape_match(link)
             matches = matches.append(match, ignore_index=True)
             clear_output()
         
         # save to CSV if requested by user
         if save:
-            filename = 'EPL_matches_'+season+'_Understat.csv'
+            filename = season+"_"+league+"_Understat_matches.csv"
             matches.to_csv(path_or_buf=filename, index=False)
             print('Matches dataframe saved to ' + filename)
             return filename
@@ -138,7 +138,7 @@ class Understat:
             return matches
         
         
-    def scrape_league_table(self, year, league):
+    def scrape_league_table(self, year, league, normalize=False):
         if not check_season(year,league,'Understat'):
             return -1
         
@@ -198,8 +198,11 @@ class Understat:
         # remove performance differential text from some columns
         for i in range(df.shape[0]):
             df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
-            df.loc[i,"xGA"] = self.remove_diff(df.loc[i,"xG"])
+            df.loc[i,"xGA"] = self.remove_diff(df.loc[i,"xGA"])
             df.loc[i,"xPTS"] = self.remove_diff(df.loc[i,"xPTS"])
+            
+        if normalize:
+            df.iloc[:,2:] = df.iloc[:,2:].divide(df["M"], axis="rows")
         
         return df
             

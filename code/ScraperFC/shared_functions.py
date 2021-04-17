@@ -19,9 +19,9 @@ def check_season(year,league,source):
     if not (yr_valid and lg_valid):
         print("ERROR: Invalid season chosen for source "+source,".")
         if not yr_valid:
-            print("Invalid year.")
+            print("ERROR: Invalid year.")
         if not lg_valid:
-            print("Invalid league.")
+            print("ERROR: Invalid league.")
     
     return (yr_valid and lg_valid)
         
