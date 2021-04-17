@@ -419,12 +419,12 @@ class FBRef:
         match['Away Ast'] = np.array(df[10][('Performance','Ast')])[-1]
         match['FBRef Home xG'] = np.array(df[3][('Expected','xG')])[-1]
         match['FBRef Away xG'] = np.array(df[10][('Expected','xG')])[-1]
-        match['Home npxG'] = np.array(df[3][('Expected','npxG')])[-1]
-        match['Away npxG'] = np.array(df[10][('Expected','npxG')])[-1]
+        match['FBRef Home npxG'] = np.array(df[3][('Expected','npxG')])[-1]
+        match['FBRef Away npxG'] = np.array(df[10][('Expected','npxG')])[-1]
         match['FBRef Home xA'] = np.array(df[3][('Expected','xA')])[-1]
         match['FBRef Away xA'] = np.array(df[10][('Expected','xA')])[-1]
-        match['Home psxG'] = np.array(df[16][('Shot Stopping','PSxG')])[-1]
-        match['Away psxG'] = np.array(df[9][('Shot Stopping','PSxG')])[-1]
+        match['FBRef Home psxG'] = np.array(df[16][('Shot Stopping','PSxG')])[-1]
+        match['FBRef Away psxG'] = np.array(df[9][('Shot Stopping','PSxG')])[-1]
         return match
     
     
@@ -447,11 +447,7 @@ class FBRef:
             clear_output()
         # save to CSV if requested by user
         if save:
-            if league == 'EPL':
-                prefix = 'EPL_'
-            elif league == 'La Liga':
-                prefix = 'La_Liga_'
-            filename = prefix+season+'_FBRef.csv'
+            filename = season+"_"+league+"_FBRef_matches.csv"
             matches.to_csv(path_or_buf=filename, index=False)
             print('Matches dataframe saved to ' + filename)
             return filename
