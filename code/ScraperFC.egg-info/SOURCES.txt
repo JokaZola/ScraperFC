@@ -9,4 +9,5 @@ code/ScraperFC/shared_functions.py
 code/ScraperFC.egg-info/PKG-INFO
 code/ScraperFC.egg-info/SOURCES.txt
 code/ScraperFC.egg-info/dependency_links.txt
+code/ScraperFC.egg-info/requires.txt
 code/ScraperFC.egg-info/top_level.txt

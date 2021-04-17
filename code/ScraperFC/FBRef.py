@@ -13,6 +13,7 @@ class FBRef:
     def __init__(self):
         options = Options()
         options.headless = True
+        options.add_argument("window-size=1400,600")
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         clear_output()
         
@@ -87,32 +88,39 @@ class FBRef:
         return lg_tbl
     
     
-    def scrape_standard(self, year, league, normalize=False):
+    def scrape_standard(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)# go the link to the right season
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/stats/' + new[-1]
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        drop_cols = squad.xs("Per 90 Minutes", axis=1, level=0, drop_level=False).columns
-        squad.drop(columns=drop_cols, inplace=True)
-        vs.drop(columns=drop_cols, inplace=True)
-        if normalize:
-            squad.iloc[:,8:] = squad.iloc[:,8:].divide(squad[("Playing Time","90s")], axis="rows")
-            vs.iloc[:,8:] = vs.iloc[:,8:].divide(vs[("Playing Time","90s")], axis="rows")
-        col = ("Performance","G+A")
-        squad[col] = squad[("Performance","Gls")] - squad[("Performance","Ast")]
-        vs[col] = vs[("Performance","Gls")] - vs[("Performance","Ast")]
-        col = ("Performance","G+A-PK")
-        squad[col] = squad[("Performance","G+A")] - squad[("Performance","PK")]
-        vs[col] = vs[("Performance","G+A")] - vs[("Performance","PK")]
-        col = ("Expected","xG+xA")
-        squad[col] = squad[("Expected","xG")] + squad[("Expected","xA")]
-        vs[col] = vs[("Expected","xG")] + vs[("Expected","xA")]
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            html = self.driver.find_element_by_id("stats_standard").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            return df
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            drop_cols = squad.xs("Per 90 Minutes", axis=1, level=0, drop_level=False).columns
+            squad.drop(columns=drop_cols, inplace=True)
+            vs.drop(columns=drop_cols, inplace=True)
+            if normalize:
+                squad.iloc[:,8:] = squad.iloc[:,8:].divide(squad[("Playing Time","90s")], axis="rows")
+                vs.iloc[:,8:] = vs.iloc[:,8:].divide(vs[("Playing Time","90s")], axis="rows")
+            col = ("Performance","G+A")
+            squad[col] = squad[("Performance","Gls")] - squad[("Performance","Ast")]
+            vs[col] = vs[("Performance","Gls")] - vs[("Performance","Ast")]
+            col = ("Performance","G+A-PK")
+            squad[col] = squad[("Performance","G+A")] - squad[("Performance","PK")]
+            vs[col] = vs[("Performance","G+A")] - vs[("Performance","PK")]
+            col = ("Expected","xG+xA")
+            squad[col] = squad[("Expected","xG")] + squad[("Expected","xA")]
+            vs[col] = vs[("Expected","xG")] + vs[("Expected","xA")]
+            return squad, vs
         
     
     def scrape_gk(self, year, league, normalize=False):
