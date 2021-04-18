@@ -79,7 +79,7 @@ class FBRef:
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         df = pd.read_html(url)
         lg_tbl = df[0].copy()
         lg_tbl.drop(columns=["xGD/90"], inplace=True)
@@ -92,14 +92,24 @@ class FBRef:
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/stats/' + new[-1]
         if player:
             self.driver.get(new)
+            if normalize:
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_standard_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
             html = self.driver.find_element_by_id("stats_standard").get_attribute("outerHTML")
             df = pd.read_html(html)[0]
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(columns=["Per 90 Minutes","Unnamed: 32_level_0"], level=0, inplace=True)
+            for col in ["Playing Time", "Performance", "Expected", "Unnamed: 0_level_0",
+                        "Unnamed: 5_level_0", "Unnamed: 6_level_0"]:
+                df[col] = df[col].astype("float")
+            df[("Performance","G+A")] = df[("Performance","Gls")] - df[("Performance","Ast")]
+            df[("Performance","G+A-PK")] = df[("Performance","G+A")] - df[("Performance","PK")]
+            df[("Expected","xG+xA")] = df[("Expected","xG")] + df[("Expected","xA")]
             return df
         else:
             df = pd.read_html(new)
@@ -123,248 +133,308 @@ class FBRef:
             return squad, vs
         
     
-    def scrape_gk(self, year, league, normalize=False):
+    def scrape_gk(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/keepers/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        squad.drop(columns=[("Performance","GA90")], inplace=True)
-        vs.drop(columns=[("Performance","GA90")], inplace=True)
-        if normalize:
-            keep_cols = [("Performance","Save%"), ("Performance","CS%"), ("Penalty Kicks","Save%")]
-            keep = squad[keep_cols]
-            squad.iloc[:,6:] = squad.iloc[:,6:].divide(squad[("Playing Time","90s")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,6:] = vs.iloc[:,6:].divide(vs[("Playing Time","90s")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_keeper_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            html = self.driver.find_element_by_id("stats_keeper").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(columns=[("Performance","GA90"), ("Unnamed: 26_level_0","Matches")], inplace=True)
+            for col in ["Playing Time", "Performance", "Unnamed: 16_level_0",
+                        "Unnamed: 17_level_0", "Unnamed: 18_level_0", "Penalty Kicks",
+                        "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0"]:
+                df[col] = df[col].astype("float")
+            return df
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            squad.drop(columns=[("Performance","GA90")], inplace=True)
+            vs.drop(columns=[("Performance","GA90")], inplace=True)
+            if normalize:
+                keep_cols = [("Performance","Save%"), ("Performance","CS%"), ("Penalty Kicks","Save%")]
+                keep = squad[keep_cols]
+                squad.iloc[:,6:] = squad.iloc[:,6:].divide(squad[("Playing Time","90s")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,6:] = vs.iloc[:,6:].divide(vs[("Playing Time","90s")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
     
-    def scrape_adv_gk(self, year, league, normalize=False):
+    def scrape_adv_gk(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/keepersadv/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        squad.drop(columns=[("Expected","/90"), ("Sweeper","#OPA/90")], inplace=True)
-        vs.drop(columns=[("Expected","/90"), ("Sweeper","#OPA/90")], inplace=True)
-        if normalize:
-            keep_cols = [("Launched","Cmp%"),
-                         ("Passes","Launch%"), ("Passes","AvgLen"),
-                         ("Goal Kicks","Launch%"), ("Goal Kicks", "AvgLen"), 
-                         ("Crosses","Stp%"), ("Sweeper","AvgDist")]
-            keep = squad[keep_cols]
-            squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            squad.drop(columns=[("Expected","/90"), ("Sweeper","#OPA/90")], inplace=True)
+            vs.drop(columns=[("Expected","/90"), ("Sweeper","#OPA/90")], inplace=True)
+            if normalize:
+                keep_cols = [("Launched","Cmp%"),
+                             ("Passes","Launch%"), ("Passes","AvgLen"),
+                             ("Goal Kicks","Launch%"), ("Goal Kicks", "AvgLen"), 
+                             ("Crosses","Stp%"), ("Sweeper","AvgDist")]
+                keep = squad[keep_cols]
+                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
     
-    def scrape_shooting(self, year, league, normalize=False):
+    def scrape_shooting(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/shooting/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        squad.drop(columns=[("Standard","Sh/90"), ("Standard","SoT/90"), ], inplace=True)
-        vs.drop(columns=[("Standard","Sh/90"), ("Standard","SoT/90"), ], inplace=True)
-        if normalize:
-            keep_cols = [("Standard","SoT%"), ("Standard","Dist")]
-            keep = squad[keep_cols]
-            squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            squad.drop(columns=[("Standard","Sh/90"), ("Standard","SoT/90"), ], inplace=True)
+            vs.drop(columns=[("Standard","Sh/90"), ("Standard","SoT/90"), ], inplace=True)
+            if normalize:
+                keep_cols = [("Standard","SoT%"), ("Standard","Dist")]
+                keep = squad[keep_cols]
+                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
     
-    def scrape_passing(self, year, league, normalize=False):
+    def scrape_passing(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/passing/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        if normalize:
-            keep_cols = [("Total","Cmp%"), ("Short","Cmp%"), ("Medium","Cmp%"), ("Long","Cmp%")]
-            keep = squad[keep_cols]
-            squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            if normalize:
+                keep_cols = [("Total","Cmp%"), ("Short","Cmp%"), ("Medium","Cmp%"), ("Long","Cmp%")]
+                keep = squad[keep_cols]
+                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
     
-    def scrape_passing_types(self, year, league, normalize=False):
+    def scrape_passing_types(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/passing_types/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        if normalize:
-            squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
-            vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            if normalize:
+                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
+                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+            return squad, vs
     
     
-    def scrape_goal_shot_creation(self, year, league, normalize=False):
+    def scrape_goal_shot_creation(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/gca/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        squad.drop(columns=[("SCA","SCA90"), ("GCA","GCA90")], inplace=True)
-        vs.drop(columns=[("SCA","SCA90"), ("GCA","GCA90")], inplace=True)
-        if normalize:
-            squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
-            vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            squad.drop(columns=[("SCA","SCA90"), ("GCA","GCA90")], inplace=True)
+            vs.drop(columns=[("SCA","SCA90"), ("GCA","GCA90")], inplace=True)
+            if normalize:
+                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
+                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+            return squad, vs
     
     
-    def scrape_defensive(self, year, league, normalize=False):
+    def scrape_defensive(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/defense/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        if normalize:
-            keep_cols = [("Vs Dribbles","Tkl%"), ("Pressures","%")]
-            keep = squad[keep_cols]
-            squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            if normalize:
+                keep_cols = [("Vs Dribbles","Tkl%"), ("Pressures","%")]
+                keep = squad[keep_cols]
+                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
     
-    def scrape_possession(self, year, league, normalize=False):
+    def scrape_possession(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/possession/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        if normalize:
-            keep_cols = [("Dribbles","Succ%"),("Receiving","Rec%")]
-            keep = squad[keep_cols]
-            squad.iloc[:,4:] = squad.iloc[:,4:].divide(squad[("Unnamed: 3_level_0","90s")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[("Unnamed: 3_level_0","90s")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            if normalize:
+                keep_cols = [("Dribbles","Succ%"),("Receiving","Rec%")]
+                keep = squad[keep_cols]
+                squad.iloc[:,4:] = squad.iloc[:,4:].divide(squad[("Unnamed: 3_level_0","90s")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[("Unnamed: 3_level_0","90s")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
     
-    def scrape_playing_time(self, year, league, normalize=False):
+    def scrape_playing_time(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/playingtime/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        squad.drop(columns=[("Team Success","+/-90"), ("Team Success (xG)","xG+/-90")], inplace=True)
-        vs.drop(columns=[("Team Success","+/-90"), ("Team Success (xG)","xG+/-90")], inplace=True)
-        if normalize:
-            keep_cols = [("Playing Time","Mn/MP"), ("Playing Time","Min%"),
-                         ("Playing Time","90s"), ("Starts","Mn/Start")]
-            keep = squad[keep_cols]
-            squad.iloc[:,4:] = squad.iloc[:,4:].divide(squad[("Playing Time","MP")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[("Playing Time","MP")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            squad.drop(columns=[("Team Success","+/-90"), ("Team Success (xG)","xG+/-90")], inplace=True)
+            vs.drop(columns=[("Team Success","+/-90"), ("Team Success (xG)","xG+/-90")], inplace=True)
+            if normalize:
+                keep_cols = [("Playing Time","Mn/MP"), ("Playing Time","Min%"),
+                             ("Playing Time","90s"), ("Starts","Mn/Start")]
+                keep = squad[keep_cols]
+                squad.iloc[:,4:] = squad.iloc[:,4:].divide(squad[("Playing Time","MP")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[("Playing Time","MP")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
     
     
-    def scrape_misc(self, year, league, normalize=False):
+    def scrape_misc(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
         season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)# go the link to the right season
+        url = self.get_season_link(year,league)
         new = url.split('/')
         new = '/'.join(new[:-1]) + '/misc/' + new[-1]
         new = new.replace("https","http")
-        df = pd.read_html(new)
-        squad = df[0].copy()
-        vs = df[1].copy()
-        if normalize:
-            keep_cols = [("Aerial Duels","Won%")]
-            keep = squad[keep_cols]
-            squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
-            squad[keep_cols] = keep
-            keep = vs[keep_cols]
-            vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
-            vs[keep_cols] = keep
-        return squad, vs
+        if player:
+            self.driver.get(new)
+            if normalize:
+                pass
+        else:
+            df = pd.read_html(new)
+            squad = df[0].copy()
+            vs = df[1].copy()
+            if normalize:
+                keep_cols = [("Aerial Duels","Won%")]
+                keep = squad[keep_cols]
+                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
+                squad[keep_cols] = keep
+                keep = vs[keep_cols]
+                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+                vs[keep_cols] = keep
+            return squad, vs
     
         
-    def scrape_season(self, year, league, normalize=False):
+    def scrape_season(self, year, league, normalize=False, player=False):
         if not check_season(year,league,'FBRef'):
             return -1
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)   
+#         season = str(year-1)+'-'+str(year)
+#         url = self.get_season_link(year,league)   
         lg_tbl = self.scrape_league_table(year,league,normalize)
-        std_for, std_vs = self.scrape_standard(year,league,normalize)
-        gk_for, gk_vs = self.scrape_gk(year,league,normalize)
-        adv_gk_for, adv_gk_vs = self.scrape_adv_gk(year,league,normalize)
-        shoot_for, shoot_vs = self.scrape_shooting(year,league,normalize)
-        pass_for, pass_vs = self.scrape_passing(year,league,normalize)
-        pass_type_for, pass_type_vs = self.scrape_passing_types(year,league,normalize)
-        gca_for, gca_vs = self.scrape_goal_shot_creation(year,league,normalize)
-        def_for, def_vs = self.scrape_defensive(year,league,normalize)
-        poss_for, poss_vs = self.scrape_possession(year,league,normalize)
-        play_time_for, play_time_vs = self.scrape.scrape_playing_time(year,league,normalize)
-        misc_for, misc_vs = self.scrape_misc(year,league,normalize)
+        std_for, std_vs = self.scrape_standard(year,league,normalize,player)
+        gk_for, gk_vs = self.scrape_gk(year,league,normalize,player)
+        adv_gk_for, adv_gk_vs = self.scrape_adv_gk(year,league,normalize,player)
+        shoot_for, shoot_vs = self.scrape_shooting(year,league,normalize,player)
+        pass_for, pass_vs = self.scrape_passing(year,league,normalize,player)
+        pass_type_for, pass_type_vs = self.scrape_passing_types(year,league,normalize,player)
+        gca_for, gca_vs = self.scrape_goal_shot_creation(year,league,normalize,player)
+        def_for, def_vs = self.scrape_defensive(year,league,normalize,player)
+        poss_for, poss_vs = self.scrape_possession(year,league,normalize,player)
+        play_time_for, play_time_vs = self.scrape.scrape_playing_time(year,league,normalize,player)
+        misc_for, misc_vs = self.scrape_misc(year,league,normalize,player)
         out = {
             "League Table": lg_tbl,
             "Standard": (std_for, std_vs),
