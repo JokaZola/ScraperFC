@@ -100,13 +100,20 @@ class FBRef:
             if normalize:
                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_standard_per_match_toggle\"]")
                 self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
             html = self.driver.find_element_by_id("stats_standard").get_attribute("outerHTML")
             df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
             df.drop(columns=["Per 90 Minutes","Unnamed: 32_level_0"], level=0, inplace=True)
-            for col in ["Playing Time", "Performance", "Expected", "Unnamed: 0_level_0",
-                        "Unnamed: 5_level_0", "Unnamed: 6_level_0"]:
+            # convert type from str to float
+            cols = [
+                "Unnamed: 0_level_0", "Playing Time", "Performance", "Expected", 
+                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0"
+            ]
+            for col in cols:
                 df[col] = df[col].astype("float")
+            # add some calculated columns
             df[("Performance","G+A")] = df[("Performance","Gls")] - df[("Performance","Ast")]
             df[("Performance","G+A-PK")] = df[("Performance","G+A")] - df[("Performance","PK")]
             df[("Expected","xG+xA")] = df[("Expected","xG")] + df[("Expected","xA")]
@@ -146,13 +153,20 @@ class FBRef:
             if normalize:
                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_keeper_per_match_toggle\"]")
                 self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
             html = self.driver.find_element_by_id("stats_keeper").get_attribute("outerHTML")
             df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
             df.drop(columns=[("Performance","GA90"), ("Unnamed: 26_level_0","Matches")], inplace=True)
-            for col in ["Playing Time", "Performance", "Unnamed: 16_level_0",
-                        "Unnamed: 17_level_0", "Unnamed: 18_level_0", "Penalty Kicks",
-                        "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0"]:
+            # convert type from str to float
+            cols = [
+                "Playing Time", "Performance", "Unnamed: 16_level_0",
+                "Unnamed: 17_level_0", "Unnamed: 18_level_0", "Penalty Kicks",
+                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
+                "Unnamed: 0_level_0"
+            ]
+            for col in cols:
                 df[col] = df[col].astype("float")
             return df
         else:
@@ -183,7 +197,26 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_keeper_adv_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_keeper_adv").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(columns=[("Expected","/90"),("Sweeper","#OPA/90"),
+                             ("Unnamed: 33_level_0","Matches")],
+                    inplace=True)
+            # convert type from str to float
+            cols = [
+                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
+                "Unnamed: 7_level_0", "Unnamed: 8_level_0", "Unnamed: 9_level_0",
+                "Goals","Expected", "Launched", "Passes", "Goal Kicks", "Crosses",
+                "Sweeper"
+            ]
+            for col in cols:
+                df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
@@ -215,13 +248,38 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_shooting_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_shooting").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("Standard","Sh/90"),("Standard","SoT/90"),("Unnamed: 25_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            cols = [
+                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
+                "Unnamed: 7_level_0", "Unnamed: 8_level_0", "Standard", 
+                "Performance", "Expected"
+            ]
+            for col in cols:
+                df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
             vs = df[1].copy()
-            squad.drop(columns=[("Standard","Sh/90"), ("Standard","SoT/90"), ], inplace=True)
-            vs.drop(columns=[("Standard","Sh/90"), ("Standard","SoT/90"), ], inplace=True)
+            squad.drop(
+                columns=[("Standard","Sh/90"), ("Standard","SoT/90")], 
+                inplace=True
+            )
+            vs.drop(
+                columns=[("Standard","Sh/90"), ("Standard","SoT/90")], 
+                inplace=True
+            )
             if normalize:
                 keep_cols = [("Standard","SoT%"), ("Standard","Dist")]
                 keep = squad[keep_cols]
@@ -244,7 +302,28 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_passing_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_passing").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("Unnamed: 30_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            cols = [
+                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
+                "Unnamed: 7_level_0", "Total", "Short", "Medium", "Long", 
+                "Unnamed: 22_level_0", "Unnamed: 23_level_0", "Unnamed: 24_level_0", 
+                "Unnamed: 25_level_0", "Unnamed: 26_level_0", "Unnamed: 27_level_0", 
+                "Unnamed: 28_level_0", "Unnamed: 29_level_0"
+            ]
+            for col in cols:
+                df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
