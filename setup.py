@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     
 setuptools.setup(
     name = 'ScraperFC',
-    version = '1.0.1',
+    version = '1.1.0',
     author = 'Owen Seymour',
     author_email = 'osmour043@gmail.com',
     description = 'Package for scraping soccer data from a variety of sources.',
