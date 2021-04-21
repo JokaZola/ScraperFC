@@ -107,12 +107,9 @@ class FBRef:
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
             df.drop(columns=["Per 90 Minutes","Unnamed: 32_level_0"], level=0, inplace=True)
             # convert type from str to float
-            cols = [
-                "Unnamed: 0_level_0", "Playing Time", "Performance", "Expected", 
-                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0"
-            ]
-            for col in cols:
-                df[col] = df[col].astype("float")
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
             # add some calculated columns
             df[("Performance","G+A")] = df[("Performance","Gls")] - df[("Performance","Ast")]
             df[("Performance","G+A-PK")] = df[("Performance","G+A")] - df[("Performance","PK")]
@@ -160,14 +157,9 @@ class FBRef:
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
             df.drop(columns=[("Performance","GA90"), ("Unnamed: 26_level_0","Matches")], inplace=True)
             # convert type from str to float
-            cols = [
-                "Playing Time", "Performance", "Unnamed: 16_level_0",
-                "Unnamed: 17_level_0", "Unnamed: 18_level_0", "Penalty Kicks",
-                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
-                "Unnamed: 0_level_0"
-            ]
-            for col in cols:
-                df[col] = df[col].astype("float")
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
             return df
         else:
             df = pd.read_html(new)
@@ -208,14 +200,9 @@ class FBRef:
                              ("Unnamed: 33_level_0","Matches")],
                     inplace=True)
             # convert type from str to float
-            cols = [
-                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
-                "Unnamed: 7_level_0", "Unnamed: 8_level_0", "Unnamed: 9_level_0",
-                "Goals","Expected", "Launched", "Passes", "Goal Kicks", "Crosses",
-                "Sweeper"
-            ]
-            for col in cols:
-                df[col] = df[col].astype("float")
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
             return df
         else:
             df = pd.read_html(new)
@@ -260,13 +247,9 @@ class FBRef:
                 inplace=True
             )
             # convert type from str to float
-            cols = [
-                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
-                "Unnamed: 7_level_0", "Unnamed: 8_level_0", "Standard", 
-                "Performance", "Expected"
-            ]
-            for col in cols:
-                df[col] = df[col].astype("float")
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
             return df
         else:
             df = pd.read_html(new)
@@ -314,15 +297,9 @@ class FBRef:
                 inplace=True
             )
             # convert type from str to float
-            cols = [
-                "Unnamed: 0_level_0", "Unnamed: 5_level_0", "Unnamed: 6_level_0",
-                "Unnamed: 7_level_0", "Total", "Short", "Medium", "Long", 
-                "Unnamed: 22_level_0", "Unnamed: 23_level_0", "Unnamed: 24_level_0", 
-                "Unnamed: 25_level_0", "Unnamed: 26_level_0", "Unnamed: 27_level_0", 
-                "Unnamed: 28_level_0", "Unnamed: 29_level_0"
-            ]
-            for col in cols:
-                df[col] = df[col].astype("float")
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
             return df
         else:
             df = pd.read_html(new)
@@ -350,7 +327,22 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_passing_types_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_passing_types").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("Unnamed: 33_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
@@ -372,7 +364,22 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_gca_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_gca").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("SCA","SCA90"), ("GCA","GCA90"), ("Unnamed: 25_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
@@ -396,7 +403,22 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_defense_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_defense").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("Unnamed: 31_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
@@ -423,7 +445,22 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_possession_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_possession").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("Unnamed: 32_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
@@ -450,7 +487,22 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_playing_time_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_playing_time").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("Team Success","+/-90"),("Team Success (xG)","xG+/-90"),("Unnamed: 29_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
@@ -481,7 +533,22 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                pass
+                button = self.driver.find_element_by_xpath("//*[@id=\"stats_misc_per_match_toggle\"]")
+                self.driver.execute_script("arguments[0].click()",button)
+            # get html and scrape table
+            html = self.driver.find_element_by_id("stats_misc").get_attribute("outerHTML")
+            df = pd.read_html(html)[0]
+            # drop duplicate header rows and link to match logs
+            df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
+            df.drop(
+                columns=[("Unnamed: 24_level_0","Matches")],
+                inplace=True
+            )
+            # convert type from str to float
+            for col in list(df.columns.get_level_values(0)):
+                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                    df[col] = df[col].astype("float")
+            return df
         else:
             df = pd.read_html(new)
             squad = df[0].copy()
@@ -502,31 +569,45 @@ class FBRef:
             return -1
 #         season = str(year-1)+'-'+str(year)
 #         url = self.get_season_link(year,league)   
-        lg_tbl = self.scrape_league_table(year,league,normalize)
-        std_for, std_vs = self.scrape_standard(year,league,normalize,player)
-        gk_for, gk_vs = self.scrape_gk(year,league,normalize,player)
-        adv_gk_for, adv_gk_vs = self.scrape_adv_gk(year,league,normalize,player)
-        shoot_for, shoot_vs = self.scrape_shooting(year,league,normalize,player)
-        pass_for, pass_vs = self.scrape_passing(year,league,normalize,player)
-        pass_type_for, pass_type_vs = self.scrape_passing_types(year,league,normalize,player)
-        gca_for, gca_vs = self.scrape_goal_shot_creation(year,league,normalize,player)
-        def_for, def_vs = self.scrape_defensive(year,league,normalize,player)
-        poss_for, poss_vs = self.scrape_possession(year,league,normalize,player)
-        play_time_for, play_time_vs = self.scrape.scrape_playing_time(year,league,normalize,player)
-        misc_for, misc_vs = self.scrape_misc(year,league,normalize,player)
+#         lg_tbl = self.scrape_league_table(year,league,normalize)
+#         std_for, std_vs = self.scrape_standard(year,league,normalize,player)
+#         gk_for, gk_vs = self.scrape_gk(year,league,normalize,player)
+#         adv_gk_for, adv_gk_vs = self.scrape_adv_gk(year,league,normalize,player)
+#         shoot_for, shoot_vs = self.scrape_shooting(year,league,normalize,player)
+#         pass_for, pass_vs = self.scrape_passing(year,league,normalize,player)
+#         pass_type_for, pass_type_vs = self.scrape_passing_types(year,league,normalize,player)
+#         gca_for, gca_vs = self.scrape_goal_shot_creation(year,league,normalize,player)
+#         def_for, def_vs = self.scrape_defensive(year,league,normalize,player)
+#         poss_for, poss_vs = self.scrape_possession(year,league,normalize,player)
+#         play_time_for, play_time_vs = self.scrape_playing_time(year,league,normalize,player)
+#         misc_for, misc_vs = self.scrape_misc(year,league,normalize,player)
+#         out = {
+#             "League Table": lg_tbl,
+#             "Standard": (std_for, std_vs),
+#             "Goalkeeping": (gk_for, gk_vs),
+#             "Advanced Goalkeeping": (adv_gk_for, adv_gk_vs),
+#             "Shooting": (shoot_for, shoot_vs),
+#             "Passing": (pass_for, pass_vs),
+#             "Pass Types": (pass_type_for, pass_type_vs),
+#             "GCA": (gca_for, gca_vs),
+#             "Defensive": (def_for, def_vs),
+#             "Possession": (poss_for, poss_vs),
+#             "Playing Time": (play_time_for, play_time_vs),
+#             "Misc": (misc_for, misc_vs)
+#         }
         out = {
-            "League Table": lg_tbl,
-            "Standard": (std_for, std_vs),
-            "Goalkeeping": (gk_for, gk_vs),
-            "Advanced Goalkeeping": (adv_gk_for, adv_gk_vs),
-            "Shooting": (shoot_for, shoot_vs),
-            "Passing": (pass_for, pass_vs),
-            "Pass Types": (pass_type_for, pass_type_vs),
-            "GCA": (gca_for, gca_vs),
-            "Defensive": (def_for, def_vs),
-            "Possession": (poss_for, poss_vs),
-            "Playing Time": (play_time_for, play_time_vs),
-            "Misc": (misc_for, misc_vs)
+            "League Table":         self.scrape_league_table(year,league,normalize),
+            "Standard":             self.scrape_standard(year,league,normalize,player),
+            "Goalkeeping":          self.scrape_gk(year,league,normalize,player),
+            "Advanced Goalkeeping": self.scrape_adv_gk(year,league,normalize,player),
+            "Shooting":             self.scrape_shooting(year,league,normalize,player),
+            "Passing":              self.scrape_passing(year,league,normalize,player),
+            "Pass Types":           self.scrape_passing_types(year,league,normalize,player),
+            "GCA":                  self.scrape_goal_shot_creation(year,league,normalize,player),
+            "Defensive":            self.scrape_defensive(year,league,normalize,player),
+            "Possession":           self.scrape_possession(year,league,normalize,player),
+            "Playing Time":         self.scrape_playing_time(year,league,normalize,player),
+            "Misc":                 self.scrape_misc(year,league,normalize,player)
         }
         return out
     
