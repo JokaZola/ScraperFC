@@ -5,8 +5,8 @@ import os
 import pandas as pd
 import numpy as np
 from IPython.display import clear_output
-import re
 from ScraperFC.shared_functions import check_season
+import datetime
 import time
 
 
