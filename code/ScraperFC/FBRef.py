@@ -720,7 +720,6 @@ class FBRef:
             match = self.scrape_match(link,league)
             matches = matches.append(match, ignore_index=True)
             clear_output()
-            break
         
         # save to CSV if requested by user
         if save:
