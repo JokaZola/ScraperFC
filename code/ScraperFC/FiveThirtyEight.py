@@ -4,7 +4,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os
 import pandas as pd
 import numpy as np
-import datetime
 from IPython.display import clear_output
 from zipfile import ZipFile
 from ScraperFC.shared_functions import check_season

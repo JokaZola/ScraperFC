@@ -71,7 +71,6 @@ class FBRef:
         second_half = url[7:][0].split('-')
         second_half = '-'.join(second_half[:4])+'-Score-and-Fixtures'
         url = first_half+'/schedule/'+second_half
-        print(url)
         self.driver.get(url)
         
         # Get links to all of the matches in that season
@@ -83,9 +82,9 @@ class FBRef:
         elif league == 'La Liga':
             finder = '-La-Liga'
         elif league == 'Bundesliga':
-            pass
+            finder = '-Bundesliga'
         elif league == 'Serie A':
-            pass
+            finder = '-Serie-A'
         elif league == 'Ligue 1':
             if year >= 2003:
                 finder = '-Ligue-1'
@@ -127,7 +126,9 @@ class FBRef:
     
     
     def scrape_standard(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
@@ -180,7 +181,15 @@ class FBRef:
     
     
     def scrape_gk(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return -1
+        elif league in['La Liga','Bundesliga','Ligue 1'] and year<2000:
+            print('Goalkeeping stats not available from',league,'before 1999/2000 season.')
+            return -1
+        elif league=='Serie A' and year<1999:
+            print('Goalkeeping stats not available from Serie A before 1998/99 season.')
             return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
@@ -223,10 +232,13 @@ class FBRef:
     
     
     def scrape_adv_gk(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         elif year < 2018:
             print("Advanced goalkeeping stats not available from before the 2017/18 season.")
+            return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
         new = url.split('/')
@@ -270,7 +282,9 @@ class FBRef:
     
     
     def scrape_shooting(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
@@ -319,10 +333,13 @@ class FBRef:
     
     
     def scrape_passing(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         elif year < 2018:
             print("Passing stats not available from before the 2017/18 season.")
+            return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
         new = url.split('/')
@@ -364,10 +381,13 @@ class FBRef:
     
     
     def scrape_passing_types(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         elif year < 2018:
-            print("Passing type  stats not available from before the 2017/18 season.")
+            print("Passing type stats not available from before the 2017/18 season.")
+            return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
         new = url.split('/')
@@ -404,10 +424,13 @@ class FBRef:
     
     
     def scrape_goal_shot_creation(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         elif year < 2018:
             print("Goal and shot creation stats not available from before the 2017/18 season.")
+            return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
         new = url.split('/')
@@ -446,10 +469,13 @@ class FBRef:
     
     
     def scrape_defensive(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         elif year < 2018:
             print("Defensive stats not available from before the 2017/18 season.")
+            return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
         new = url.split('/')
@@ -491,10 +517,13 @@ class FBRef:
     
     
     def scrape_possession(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         elif year < 2018:
             print("Possession stats not available from before the 2017/18 season.")
+            return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
         new = url.split('/')
@@ -536,7 +565,9 @@ class FBRef:
     
     
     def scrape_playing_time(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
@@ -585,7 +616,9 @@ class FBRef:
     
     
     def scrape_misc(self, year, league, normalize=False, player=False):
-        if not check_season(year,league,'FBRef'):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
         season = str(year-1)+'-'+str(year)
         url = self.get_season_link(year,league)
@@ -629,6 +662,10 @@ class FBRef:
     
         
     def scrape_season(self, year, league, normalize=False, player=False):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return -1
         if year >= 2018:
             out = {
                 "League Table":         self.scrape_league_table(year,league,normalize),
@@ -657,7 +694,49 @@ class FBRef:
     
     
     
+    def scrape_matches(self, year, league, save=False):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return -1
+        season = str(year-1)+'-'+str(year)
+        links = self.get_match_links(year,league)
+        return links
+        
+        # initialize df
+        if year >= 2018:
+            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
+                    'Home Ast','Away Ast','FBRef Home xG','FBRef Away xG','Home npxG',
+                    'Away npxG','FBRef Home xA','FBRef Away xA','Home psxG','Away psxG']
+        else:
+            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals']
+        matches = pd.DataFrame(columns=cols)
+        
+        # scrape match data
+        for i,link in enumerate(links):
+            print('Scraping match ' + str(i+1) + '/' + str(len(links)) +
+                  ' from FBRef in the ' + season + ' ' + league + ' season.')
+            link = links[i]
+            match = self.scrape_match(link,league)
+            matches = matches.append(match, ignore_index=True)
+            clear_output()
+            break
+        
+        # save to CSV if requested by user
+        if save:
+            filename = season+"_"+league+"_FBRef_matches.csv"
+            matches.to_csv(path_or_buf=filename, index=False)
+            print('Matches dataframe saved to ' + filename)
+            return filename
+        else:
+            return matches
+        
+    
     def scrape_match(self, link, league):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return -1
         df = pd.read_html(link)
         """
         Earlier than 2017/18 tables
@@ -687,7 +766,10 @@ class FBRef:
         """
         
         if league == 'EPL':
-            spliton = '-Premier-League'
+            if year >= 2008:
+                spliton = '-Premier-League'
+            else:
+                spliton = '-Premiership'
         elif league == 'La Liga':
             spliton = '-La-Liga'
         elif league == 'Bundesliga':
@@ -695,7 +777,10 @@ class FBRef:
         elif league == 'Serie A':
             spliton = '-Serie-A'
         elif league == 'Ligue 1':
-            spliton = '-Ligue-1'
+            if year >= 2003:
+                spliton = '-Ligue-1'
+            else:
+                spliton = '-Division-1'
         
         match = pd.Series()
         date = link.split(spliton)[0].split('-')[-3:]
@@ -730,39 +815,4 @@ class FBRef:
             match['Home Goals'] = np.array(df[1][('Performance','Gls')])[-1]
             match['Away Goals'] = np.array(df[2][('Performance','Gls')])[-1]
         return match
-    
-    
-    
-    def scrape_matches(self, year, league, save=False):
-        if not check_season(year,league,'FBRef'):
-            return -1
-        season = str(year-1)+'-'+str(year)
-        links = self.get_match_links(year,league)
-        return links
-        
-        # scrape match data
-        if year >= 2018:
-            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
-                    'Home Ast','Away Ast','FBRef Home xG','FBRef Away xG','Home npxG',
-                    'Away npxG','FBRef Home xA','FBRef Away xA','Home psxG','Away psxG']
-        else:
-            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals']
-        matches = pd.DataFrame(columns=cols)
-        
-        for i,link in enumerate(links):
-            print('Scraping match ' + str(i+1) + '/' + str(len(links)) +
-                  ' from FBRef in the ' + season + ' ' + league + ' season.')
-            link = links[i]
-            match = self.scrape_match(link,league)
-            matches = matches.append(match, ignore_index=True)
-            clear_output()
-        
-        # save to CSV if requested by user
-        if save:
-            filename = season+"_"+league+"_FBRef_matches.csv"
-            matches.to_csv(path_or_buf=filename, index=False)
-            print('Matches dataframe saved to ' + filename)
-            return filename
-        else:
-            return matches
         
