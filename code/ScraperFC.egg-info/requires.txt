@@ -3,5 +3,4 @@ webdriver-manager
 pandas
 numpy
 datetime
-time
 ipython
