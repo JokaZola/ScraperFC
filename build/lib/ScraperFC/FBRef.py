@@ -168,7 +168,7 @@ class FBRef:
                 vs.iloc[:,8:] = vs.iloc[:,8:].divide(vs[("Playing Time","90s")], axis="rows")
             col = ("Performance","G+A")
             squad[col] = squad[("Performance","Gls")] - squad[("Performance","Ast")]
-            vs[col] = vs[("Performance","Gls")] - vs[("Performance","Ast")]
+            vs[col] = vs[("Performance","Gls")] + vs[("Performance","Ast")]
             col = ("Performance","G+A-PK")
             squad[col] = squad[("Performance","G+A")] - squad[("Performance","PK")]
             vs[col] = vs[("Performance","G+A")] - vs[("Performance","PK")]
