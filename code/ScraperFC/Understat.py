@@ -137,8 +137,8 @@ class Understat:
         matches = pd.DataFrame(columns=cols)
         
         for i,link in enumerate(links):
-            print('Scraping match ' + str(i+1) + '/' + str(len(links)) + ' from Understat in the ' + season + ' season.')
-#             print(link)
+            print('Scraping match ' + str(i+1) + '/' + str(len(links)) + 
+                  ' from Understat in the ' + season + ' ' + league + ' season.')
             match = self.scrape_match(link)
             matches = matches.append(match, ignore_index=True)
             clear_output()
@@ -237,14 +237,14 @@ class Understat:
             table = self.driver.find_elements_by_tag_name("table")[0].get_attribute("outerHTML")
             df = pd.read_html(table)[0]
             
-            # remove performance differential text from some columns
             for i in range(df.shape[0]):
+                # remove performance differential text from some columns
                 df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
                 df.loc[i,"xGA"] = self.remove_diff(df.loc[i,"xGA"])
             
             # reformat df to fit into a row
             df.drop(columns=["№","Situation"], inplace=True)
-            row = df.to_numpy().reshape(1,-1)
+            row = df.to_numpy()
             row = np.insert(row, 0, team_name) # insert team name
             
             # append row
@@ -284,18 +284,68 @@ class Understat:
                 df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
                 df.loc[i,"xGA"] = self.remove_diff(df.loc[i,"xGA"])
                 
-            # Add formations used to dict for team
-            for row in range(df.shape[0]):
-                formation = df.loc[row,"Formation"]
+                formation = df.loc[i,"Formation"]
                 
                 if formation not in formations[team_name].keys():
-                    formations[team_name][formation] = df.iloc[row,:].drop(columns=["№","Formation"])
+                    formations[team_name][formation] = df.iloc[i,:].drop(columns=["№","Formation"])                
                     
         return formations
     
     
     def scrape_game_states(self, year, league, normalize=False):
-        pass
+        if not check_season(year,league,'Understat'):
+            return -1
+        
+        # Get links for teams in league that season
+        team_links = self.get_team_links(year, league)
+                
+        # Get situation tables for each team
+        mi = pd.MultiIndex.from_product(
+            [
+                ["Goal diff 0", "Goal diff -1", "Goal diff +1", "Goal diff < -1", "Goal diff > +1"],
+                ["Min", "Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG90", "xGA90"]
+            ]
+        )
+        mi = mi.insert(0, ("Team names", "Team"))
+        game_states = pd.DataFrame(columns=mi)
+        
+        for link in team_links:
+            
+            team_name = link.split("/")[-2]
+            self.driver.get(link)
+            self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[3]").click()
+            table = self.driver.find_elements_by_tag_name("table")[0].get_attribute("outerHTML")
+            df = pd.read_html(table)[0]
+            df.drop(columns=["№"], inplace=True)
+            
+            row = {
+                "Goal diff 0": None,
+                "Goal diff -1": None,
+                "Goal diff +1": None,
+                "Goal diff < -1": None,
+                "Goal diff > +1": None
+            }
+            for i in range(df.shape[0]):
+                # remove performance differential text from some columns
+                df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
+                df.loc[i,"xGA"] = self.remove_diff(df.loc[i,"xGA"])
+                
+                game_state = df.loc[i,"Game state"]
+                row[game_state] = df.loc[i,:].drop(labels=["Game state"])
+                
+            row_array = []
+            for key in row.keys():
+                row_array.append( row[key].to_numpy() )
+            row = np.array(row_array)
+            row = np.insert(row, 0, team_name) # insert team name
+            
+            # append row from game state into correct
+            game_states = game_states.append(
+                pd.DataFrame(row.reshape(1,-1), columns=game_states.columns),
+                ignore_index=True
+            )
+        
+        return game_states
     
     
     def scrape_timing(self, year, league, normalize=False):
