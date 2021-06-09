@@ -70,6 +70,34 @@ class Understat:
         return float(string.split("+")[0])
         
         
+    def scrape_matches(self, year, league, save=False):
+        if not check_season(year,'EPL','Understat'):
+            return -1
+        
+        season = str(year-1)+'-'+str(year)
+        links = self.get_match_links(year, league)
+        cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
+                'Home Ast','Away Ast','Understat Home xG','Understat Away xG',
+                'Understat Home xA','Understat Away xA','Understat Home xPts','Understat Away xPts']
+        matches = pd.DataFrame(columns=cols)
+        
+        for i,link in enumerate(links):
+            print('Scraping match ' + str(i+1) + '/' + str(len(links)) + 
+                  ' from Understat in the ' + season + ' ' + league + ' season.')
+            match = self.scrape_match(link)
+            matches = matches.append(match, ignore_index=True)
+            clear_output()
+        
+        # save to CSV if requested by user
+        if save:
+            filename = season+"_"+league+"_Understat_matches.csv"
+            matches.to_csv(path_or_buf=filename, index=False)
+            print('Matches dataframe saved to ' + filename)
+            return filename
+        else:
+            return matches
+        
+        
     def scrape_match(self, link):
         self.driver.get(link)
         elements = []
@@ -123,34 +151,6 @@ class Understat:
         match['Away xPts'] = float(string.split('<')[0] + string.split('>')[1].split('<')[0])
         
         return match
-        
-        
-    def scrape_matches(self, year, league, save=False):
-        if not check_season(year,'EPL','Understat'):
-            return -1
-        
-        season = str(year-1)+'-'+str(year)
-        links = self.get_match_links(year, league)
-        cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
-                'Home Ast','Away Ast','Understat Home xG','Understat Away xG',
-                'Understat Home xA','Understat Away xA','Understat Home xPts','Understat Away xPts']
-        matches = pd.DataFrame(columns=cols)
-        
-        for i,link in enumerate(links):
-            print('Scraping match ' + str(i+1) + '/' + str(len(links)) + 
-                  ' from Understat in the ' + season + ' ' + league + ' season.')
-            match = self.scrape_match(link)
-            matches = matches.append(match, ignore_index=True)
-            clear_output()
-        
-        # save to CSV if requested by user
-        if save:
-            filename = season+"_"+league+"_Understat_matches.csv"
-            matches.to_csv(path_or_buf=filename, index=False)
-            print('Matches dataframe saved to ' + filename)
-            return filename
-        else:
-            return matches
         
         
     def scrape_league_table(self, year, league, normalize=False):
