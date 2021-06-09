@@ -7,4 +7,4 @@ Data can be scraped from the following sources:
 * [Understat](https://understat.com/)
 * [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
 
-I'd love to hear your feedback, errors, or recommendations! You can reach me via email at osmour043@gmail.com or my Twitter handle is [@owen_seymour](https://twitter.com/owen_seymour).
+I'd love to hear your feedback, bugs you find, or recommendations! You can reach me via email at osmour043@gmail.com or my Twitter handle is [@owen_seymour](https://twitter.com/owen_seymour).
