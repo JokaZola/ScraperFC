@@ -220,7 +220,6 @@ class Understat:
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
                 
-        # Get situation tables for each team
         mi = pd.MultiIndex.from_product(
             [
                 ["Open play", "From corner", "Set piece", "Direct FK", "Penalty"],
@@ -299,7 +298,6 @@ class Understat:
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
                 
-        # Get situation tables for each team
         mi = pd.MultiIndex.from_product(
             [
                 ["Goal diff 0", "Goal diff -1", "Goal diff +1", "Goal diff < -1", "Goal diff > +1"],
@@ -336,24 +334,127 @@ class Understat:
             row_array = []
             for key in row.keys():
                 row_array.append( row[key].to_numpy() )
-            row = np.array(row_array)
-            row = np.insert(row, 0, team_name) # insert team name
+            row_array = np.array(row_array)
+            row_array = np.insert(row_array, 0, team_name) # insert team name
             
-            # append row from game state into correct
+            # append row
             game_states = game_states.append(
-                pd.DataFrame(row.reshape(1,-1), columns=game_states.columns),
+                pd.DataFrame(row_array.reshape(1,-1), columns=game_states.columns),
                 ignore_index=True
             )
-        
         return game_states
     
     
     def scrape_timing(self, year, league, normalize=False):
-        pass
+        if not check_season(year,league,'Understat'):
+            return -1
+        
+        # Get links for teams in league that season
+        team_links = self.get_team_links(year, league)
+
+        mi = pd.MultiIndex.from_product(
+            [
+                ["1-15", "16-30", "31-45", "46-60", "61-75", "76+"],
+                ["Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG/Sh", "xGA/Sh"]
+            ]
+        )
+        mi = mi.insert(0, ("Team names", "Team"))
+        timing_df = pd.DataFrame(columns=mi)
+
+        for link in team_links:
+            
+            team_name = link.split("/")[-2]
+            self.driver.get(link)
+            self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[4]").click()
+            table = self.driver.find_elements_by_tag_name("table")[0].get_attribute("outerHTML")
+            df = pd.read_html(table)[0]
+            df.drop(columns=["№"], inplace=True)
+
+
+            row = {
+                "1-15": None,
+                "16-30": None,
+                "31-45": None,
+                "46-60": None,
+                "61-75": None,
+                "76+": None
+            }
+            for i in range(df.shape[0]):
+                # remove performance differential text from some columns
+                df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
+                df.loc[i,"xGA"] = self.remove_diff(df.loc[i,"xGA"])
+
+                timing = df.loc[i, "Timing"]
+                row[timing] = df.loc[i,:].drop(labels=["Timing"])
+
+            row_array = []
+            for key in row.keys():
+                row_array.append(row[key].to_numpy())
+            row_array = np.array(row_array)
+            row_array = np.insert(row_array, 0, team_name) # insert team name
+
+            # append row
+            timing_df = timing_df.append(
+                pd.DataFrame(row_array.reshape(1,-1), columns=timing_df.columns),
+                ignore_index=True
+            )
+        return timing_df
     
     
     def scrape_shot_zones(self, year, league, normalize=False):
-        pass
+        if not check_season(year,league,'Understat'):
+            return -1
+        
+        # Get links for teams in league that season
+        team_links = self.get_team_links(year, league)
+
+        mi = pd.MultiIndex.from_product(
+            [
+                ["Own goals", "Out of box", "Penalty area", "Six-yard box"],
+                ["Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG/Sh", "xGA/Sh"]
+            ]
+        )
+        mi = mi.insert(0, ("Team names", "Team"))
+        shot_zones_df = pd.DataFrame(columns=mi)
+
+        for link in team_links:
+            
+            team_name = link.split("/")[-2]
+            self.driver.get(link)
+            self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[5]").click()
+            table = self.driver.find_elements_by_tag_name("table")[0].get_attribute("outerHTML")
+            df = pd.read_html(table)[0]
+            df.drop(columns=["№"], inplace=True)
+
+
+            row = {
+                "Own goals": None,
+                "Out of box": None,
+                "Penalty area": None,
+                "Six-yard box": None
+            }
+            for i in range(df.shape[0]):
+                # remove performance differential text from some columns
+                df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
+                df.loc[i,"xGA"] = self.remove_diff(df.loc[i,"xGA"])
+
+                zone = df.loc[i, "Shot zones"]
+                row[zone] = df.loc[i,:].drop(labels=["Shot zones"])
+
+            row_array = []
+            for key in row.keys():
+                if row[key] is None:
+                    row[key] = pd.Series(np.zeros((9)))
+                row_array.append(row[key].to_numpy())
+            row_array = np.array(row_array)
+            row_array = np.insert(row_array, 0, team_name) # insert team name
+
+            # append row
+            shot_zones_df = shot_zones_df.append(
+                pd.DataFrame(row_array.reshape(1,-1), columns=shot_zones_df.columns),
+                ignore_index=True
+            )
+        return shot_zones_df
     
     
     def scrape_attack_speed(self, year, league, normalize=False):
