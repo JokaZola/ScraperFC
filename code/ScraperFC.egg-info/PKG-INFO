@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ScraperFC
-Version: 1.4.0
+Version: 1.4.1
 Summary: Package for scraping soccer data from a variety of sources.
 Home-page: https://github.com/oseymour/ScraperFC
 Author: Owen Seymour
@@ -15,7 +15,7 @@ Description: This is ScraperFC, a Python package that I hope will give more peop
         * [Understat](https://understat.com/)
         * [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
         
-        I'd love to hear your feedback, errors, or recommendations! You can reach me via email at osmour043@gmail.com or my Twitter handle is [@owen_seymour](https://twitter.com/owen_seymour).
+        I'd love to hear your feedback, bugs you find, or recommendations! You can reach me via email at osmour043@gmail.com or my Twitter handle is [@owen_seymour](https://twitter.com/owen_seymour).
 Keywords: soccer,football,Premier League,Serie A,La Liga,Bundesliga,Ligue 1
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
