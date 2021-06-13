@@ -17,13 +17,11 @@ class FBRef:
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         clear_output()
       
-    
         
     def close(self):
         self.driver.close()
         self.driver.quit()
 
-    
     
     def get_season_link(self, year, league):
         if league == 'EPL':
@@ -60,6 +58,7 @@ class FBRef:
                 print('ERROR: Season not found.')
                 return -1
     
+
     def get_match_links(self, year, league):
         print('Gathering match links.')
         url = self.get_season_link(year, league)
@@ -103,6 +102,7 @@ class FBRef:
         
         return links
     
+
     def scrape_league_table(self, year, league, normalize=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -120,6 +120,7 @@ class FBRef:
             lg_tbl.iloc[:,3:10] = lg_tbl.iloc[:,3:10].divide(lg_tbl["MP"], axis="rows")
         return lg_tbl
     
+
     def scrape_standard(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -173,6 +174,7 @@ class FBRef:
                 vs[col] = vs[("Expected","xG")] + vs[("Expected","xA")]
             return squad, vs
     
+
     def scrape_gk(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -222,6 +224,7 @@ class FBRef:
                 vs[keep_cols] = keep
             return squad, vs
     
+
     def scrape_adv_gk(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -270,6 +273,7 @@ class FBRef:
                 vs[keep_cols] = keep
             return squad, vs
     
+
     def scrape_shooting(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -319,6 +323,7 @@ class FBRef:
                 vs[keep_cols] = keep
             return squad, vs
     
+
     def scrape_passing(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -365,6 +370,7 @@ class FBRef:
                 vs[keep_cols] = keep
             return squad, vs
     
+
     def scrape_passing_types(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -406,6 +412,7 @@ class FBRef:
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
             return squad, vs
     
+
     def scrape_goal_shot_creation(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -449,6 +456,7 @@ class FBRef:
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
             return squad, vs
     
+
     def scrape_defensive(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -495,6 +503,7 @@ class FBRef:
                 vs[keep_cols] = keep
             return squad, vs
     
+
     def scrape_possession(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -541,6 +550,7 @@ class FBRef:
                 vs[keep_cols] = keep
             return squad, vs
     
+
     def scrape_playing_time(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -590,6 +600,7 @@ class FBRef:
                 vs[keep_cols] = keep
             return squad, vs
     
+
     def scrape_misc(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -634,6 +645,7 @@ class FBRef:
                     vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
             return squad, vs
         
+
     def scrape_season(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -665,6 +677,7 @@ class FBRef:
             }
         return out
     
+
     def scrape_match(self, link, year, league):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -793,6 +806,7 @@ class FBRef:
             match['Away Ast'] = np.array(df[5][('Performance','Ast')])[-1]
             
         return match 
+
 
     def scrape_matches(self, year, league, save=False):
         err, valid = check_season(year,league,'FBRef')

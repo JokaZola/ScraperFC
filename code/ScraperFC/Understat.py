@@ -564,7 +564,7 @@ class Understat:
             )
         return shot_results_df
             
-    def scrape_shot_xy(self, year, league):
+    def scrape_shot_xy(self, year, league, save=False):
         if not check_season(year,'EPL','Understat'):
             return -1
         
@@ -593,5 +593,14 @@ class Understat:
                 failures.append(match_id)
                 shots_data[match_id] = "Error scraping"
             clear_output()
-        print(f"Failed scraping matches {failures}.")
-        return shots_data
+
+        # save to JSON file
+        if save:
+            filename = season+"_"+league+"_shot_xy.json"
+            with open(filename, "w") as f:
+                f.write(json.dumps(shots_data))
+            print(f"Failed scraping matches {failures}.")
+            print(f'Scraping saved to {filename}')
+            return filename
+        else:
+            return shots_data

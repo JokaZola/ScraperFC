@@ -8,6 +8,7 @@ from IPython.display import clear_output
 from ScraperFC.shared_functions import check_season
 import datetime
 import time
+import json
 
 
 class Understat:
@@ -76,7 +77,7 @@ class Understat:
         
         season = str(year-1)+'-'+str(year)
         links = self.get_match_links(year, league)
-        cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
+        cols = ['Date','Match ID','Home Team','Away Team','Home Goals','Away Goals',
                 'Home Ast','Away Ast','Understat Home xG','Understat Away xG',
                 'Understat Home xA','Understat Away xA','Understat Home xPts','Understat Away xPts']
         matches = pd.DataFrame(columns=cols)
@@ -110,7 +111,7 @@ class Understat:
             date = date.text
         date = datetime.datetime.strptime(date,'%b %d %Y').date()
         match['Date'] = date
-            
+        match['Match ID'] = link.split("/")[-1]
         match['Home Team'] = elements[0]
         match['Away Team'] = elements[1]
         
@@ -563,3 +564,43 @@ class Understat:
             )
         return shot_results_df
             
+    def scrape_shot_xy(self, year, league, save=False):
+        if not check_season(year,'EPL','Understat'):
+            return -1
+        
+        season = str(year-1)+'-'+str(year)
+        links = self.get_match_links(year, league)
+        shots_data = dict()
+        failures = list()
+
+        i = 0
+        for link in links:
+            i += 1
+            print(f"Scraping match {i}/{len(links)} in the {season} {league} season.")
+            self.driver.get(link)
+            match_id = link.split("/")[-1]
+            try:
+                game_shots_data = json.loads(\
+                    self.driver.page_source\
+                        .split("shotsData")[1]\
+                        .split("JSON.parse(\'")[1]\
+                        .split("\')")[0]\
+                        .encode("latin-1")\
+                        .decode("unicode-escape")
+                )
+                shots_data[match_id] = game_shots_data
+            except:
+                failures.append(match_id)
+                shots_data[match_id] = "Error scraping"
+            clear_output()
+
+        # save to JSON file
+        if save:
+            filename = season+"_"+league+"_shot_xy.json"
+            with open(filename, "w") as f:
+                f.write(json.dumps(shots_data))
+            print(f"Failed scraping matches {failures}.")
+            print(f'Scraping saved to {filename}')
+            return filename
+        else:
+            return shots_data
