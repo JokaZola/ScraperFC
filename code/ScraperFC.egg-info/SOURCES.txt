@@ -3,7 +3,9 @@ setup.py
 code/ScraperFC/FBRef.py
 code/ScraperFC/FiveThirtyEight.py
 code/ScraperFC/ScraperFC.py
+code/ScraperFC/SofaScore.py
 code/ScraperFC/Understat.py
+code/ScraperFC/WhoScored.py
 code/ScraperFC/__init__.py
 code/ScraperFC/shared_functions.py
 code/ScraperFC.egg-info/PKG-INFO

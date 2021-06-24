@@ -30,27 +30,39 @@ class FBRef:
                 finder = 'Premier-League-Stats'
             else:
                 finder = 'Premiership-Stats'
+
         elif league == 'La Liga':
             url = 'https://fbref.com/en/comps/12/history/La-Liga-Seasons'
             finder = 'La-Liga-Stats'
+
         elif league == "Bundesliga":
             url = "https://fbref.com/en/comps/20/history/Bundesliga-Seasons"
             finder = "Bundesliga-Stats"
+
         elif league == "Serie A":
             url = "https://fbref.com/en/comps/11/history/Serie-A-Seasons"
             finder = "Serie-A-Stats"
+
         elif league == "Ligue 1":
             url = "https://fbref.com/en/comps/13/history/Ligue-1-Seasons"
             if year >= 2003:
                 finder = '-Ligue-1'
             else:
                 finder = '-Division-1'
+
+        elif league == "MLS":
+            url = "https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons"
+            finder = "Major-League-Soccer-Stats"
+        
         else:
             print('ERROR: League not found. Options are \"EPL\", \"La Liga\", '+
                   '\"Bundesliga\", \"Serie A\", \"Ligue 1\"')
             return -1
         self.driver.get(url)
-        season = str(year-1)+'-'+str(year)
+        if league != "MLS":
+            season = str(year-1)+'-'+str(year)
+        else:
+            season = str(year)
         for element in self.driver.find_elements_by_link_text(season):
             if finder in element.get_attribute('href'):
                 return element.get_attribute('href')
@@ -77,20 +89,28 @@ class FBRef:
                 finder = '-Premier-League'
             else:
                 finder = '-Premiership'
+
         elif league == 'La Liga':
             finder = '-La-Liga'
+
         elif league == 'Bundesliga':
             finder = '-Bundesliga'
+
         elif league == 'Serie A':
             finder = '-Serie-A'
+
         elif league == 'Ligue 1':
             if year >= 2003:
                 finder = '-Ligue-1'
             else:
                 finder = '-Division-1'
+        
+        elif league == "MLS":
+            finder = "-Major-League-Soccer"
+
         else:
             print('ERROR: League not found. Options are \"EPL\", \"La Liga\", '+
-                  '\"Bundesliga\", \"Serie A\", \"Ligue 1\"')
+                  '\"Bundesliga\", \"Serie A\", \"Ligue 1\", \"MLS\".')
             return -1
         
         links = []
@@ -118,6 +138,17 @@ class FBRef:
             lg_tbl.iloc[:,3:13] = lg_tbl.iloc[:,3:13].divide(lg_tbl["MP"], axis="rows")
         elif normalize and year < 2018:
             lg_tbl.iloc[:,3:10] = lg_tbl.iloc[:,3:10].divide(lg_tbl["MP"], axis="rows")
+
+        if league == "MLS": # scrape western conference too
+            west_tbl = df[2].copy()
+            if year >= 2018:
+                west_tbl.drop(columns=["xGD/90"], inplace=True)
+            if normalize and year >= 2018:
+                west_tbl.iloc[:,3:13] = west_tbl.iloc[:,3:13].divide(west_tbl["MP"], axis="rows")
+            elif normalize and year < 2018:
+                west_tbl.iloc[:,3:10] = west_tbl.iloc[:,3:10].divide(west_tbl["MP"], axis="rows")
+            return (lg_tbl, west_tbl)
+
         return lg_tbl
     
 
@@ -436,10 +467,8 @@ class FBRef:
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
-            df.drop(
-                columns=[("SCA","SCA90"), ("GCA","GCA90"), ("Unnamed: 25_level_0","Matches")],
-                inplace=True
-            )
+            # df.drop(columns=[("SCA","SCA90"), ("GCA","GCA90")], inplace=True)
+            df.drop(columns=["SCA90", "GCA90", "Matches"], level=1, inplace=True)
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
