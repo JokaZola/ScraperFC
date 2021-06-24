@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import os
 import pandas as pd
 import numpy as np
 from IPython.display import clear_output
@@ -564,6 +563,7 @@ class Understat:
             )
         return shot_results_df
             
+
     def scrape_shot_xy(self, year, league, save=False):
         if not check_season(year,'EPL','Understat'):
             return -1
