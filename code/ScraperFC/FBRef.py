@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import os
 import pandas as pd
 import numpy as np
 import datetime
@@ -123,6 +122,33 @@ class FBRef:
         return links
     
 
+    def add_team_ids(self, df, insert_index, url, tag_name):
+        self.driver.get(url)
+        team_ids = list()
+        for el in self.driver.find_elements_by_xpath('//{}[@data-stat="squad"]'.format(tag_name)):
+            if el.text != '' and el.text != 'Squad':
+                team_id = el.find_element_by_tag_name('a') \
+                    .get_attribute('href') \
+                    .split('/squads/')[-1] \
+                    .split('/')[0]
+                team_ids.append(team_id)
+        df.insert(insert_index, 'team_id', team_ids)
+        return df
+
+    def add_player_ids(self, df, url):
+        self.driver.get(url)
+        player_ids = list()
+        for el in self.driver.find_elements_by_xpath('//td[@data-stat="player"]'):
+            if el.text != '' and el.text != 'Player':
+                team_id = el.find_element_by_tag_name('a') \
+                    .get_attribute('href') \
+                    .split('/players/')[-1] \
+                    .split('/')[0]
+                player_ids.append(team_id)
+        df.insert(2, 'player_id', player_ids)
+        return df
+
+
     def scrape_league_table(self, year, league, normalize=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -132,14 +158,15 @@ class FBRef:
         url = self.get_season_link(year,league)
         df = pd.read_html(url)
         lg_tbl = df[0].copy()
+        #### Drop columns and normalize
         if year >= 2018:
             lg_tbl.drop(columns=["xGD/90"], inplace=True)
         if normalize and year >= 2018:
             lg_tbl.iloc[:,3:13] = lg_tbl.iloc[:,3:13].divide(lg_tbl["MP"], axis="rows")
         elif normalize and year < 2018:
             lg_tbl.iloc[:,3:10] = lg_tbl.iloc[:,3:10].divide(lg_tbl["MP"], axis="rows")
-
-        if league == "MLS": # scrape western conference too
+        #### Scrape western conference if MLS
+        if league == "MLS":
             west_tbl = df[2].copy()
             if year >= 2018:
                 west_tbl.drop(columns=["xGD/90"], inplace=True)
@@ -148,7 +175,7 @@ class FBRef:
             elif normalize and year < 2018:
                 west_tbl.iloc[:,3:10] = west_tbl.iloc[:,3:10].divide(west_tbl["MP"], axis="rows")
             return (lg_tbl, west_tbl)
-
+        lg_tbl = self.add_team_ids(lg_tbl, 2, url, 'td') # Get team IDs
         return lg_tbl
     
 
@@ -182,6 +209,7 @@ class FBRef:
             df[("Performance","G+A-PK")] = df[("Performance","G+A")] - df[("Performance","PK")]
             if year >= 2018:
                 df[("Expected","xG+xA")] = df[("Expected","xG")] + df[("Expected","xA")]
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -203,6 +231,10 @@ class FBRef:
                 col = ("Expected","xG+xA")
                 squad[col] = squad[("Expected","xG")] + squad[("Expected","xA")]
                 vs[col] = vs[("Expected","xG")] + vs[("Expected","xA")]
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
+
             return squad, vs
     
 
@@ -238,6 +270,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -253,6 +286,9 @@ class FBRef:
                 keep = vs[keep_cols]
                 vs.iloc[:,6:] = vs.iloc[:,6:].divide(vs[("Playing Time","90s")], axis="rows")
                 vs[keep_cols] = keep
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -284,6 +320,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -302,6 +339,9 @@ class FBRef:
                 keep = vs[keep_cols]
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
                 vs[keep_cols] = keep
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -331,6 +371,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -352,6 +393,9 @@ class FBRef:
                 keep = vs[keep_cols]
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
                 vs[keep_cols] = keep
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -386,6 +430,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -399,6 +444,9 @@ class FBRef:
                 keep = vs[keep_cols]
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
                 vs[keep_cols] = keep
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -433,6 +481,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -441,6 +490,9 @@ class FBRef:
             if normalize:
                 squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -473,6 +525,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -483,6 +536,9 @@ class FBRef:
             if normalize:
                 squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -517,6 +573,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -530,6 +587,9 @@ class FBRef:
                 keep = vs[keep_cols]
                 vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
                 vs[keep_cols] = keep
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -564,6 +624,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -577,6 +638,9 @@ class FBRef:
                 keep = vs[keep_cols]
                 vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[("Unnamed: 3_level_0","90s")], axis="rows")
                 vs[keep_cols] = keep
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -608,6 +672,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -627,6 +692,9 @@ class FBRef:
                 keep = vs[keep_cols]
                 vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[("Playing Time","MP")], axis="rows")
                 vs[keep_cols] = keep
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
 
@@ -655,6 +723,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
                     df[col] = df[col].astype("float")
+            df = self.add_player_ids(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -672,6 +741,9 @@ class FBRef:
                 else:
                     squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[("Unnamed: 2_level_0","90s")], axis="rows")
                     vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[("Unnamed: 2_level_0","90s")], axis="rows")
+            # Get team IDs
+            squad = self.add_team_ids(squad, 1, new, 'th') 
+            vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
         
 

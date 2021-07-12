@@ -1,3 +1,13 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+from IPython.display import clear_output
+import random
+
+
 def check_season(year,league,source):
     assert source in ['FBRef','Understat','FiveThirtyEight','All', "SofaScore", "WhoScored"]
     error = None
@@ -52,4 +62,31 @@ def check_season(year,league,source):
         if league in ["EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1"] and year<2010:
             error = "Year invalid for source WhoScored and league {}. Year must be 2010 or later.".format(league)
     return error, yr_valid
-        
+
+
+def get_proxy():
+    options = Options()
+    options.headless = True
+    options.add_argument("window-size=1400,600")
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+    clear_output()
+
+    driver.get("https://sslproxies.org/")
+    driver.execute_script(
+        "return arguments[0].scrollIntoView(true);", 
+        WebDriverWait(driver, 20).until(
+            EC.visibility_of_element_located((
+                By.XPATH,
+                "//table[@class='table table-striped table-bordered dataTable']//th[contains(., 'IP Address')]"
+            ))
+        )
+    )
+    ips = list()
+    ips = [my_elem.get_attribute("innerHTML") for my_elem in WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@class='table table-striped table-bordered dataTable']//tbody//tr[@role='row']/td[position() = 1]")))]
+    ports = [my_elem.get_attribute("innerHTML") for my_elem in WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@class='table table-striped table-bordered dataTable']//tbody//tr[@role='row']/td[position() = 2]")))]
+    driver.quit()
+    proxies = list()
+    for i in range(len(ips)):
+        proxies.append('{}:{}'.format(ips[i], ports[i]))
+    i = random.randint(0, len(proxies))
+    return proxies[i]
