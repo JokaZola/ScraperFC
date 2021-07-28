@@ -63,6 +63,7 @@ def check_season(year,league,source):
     elif source == "WhoScored":
         if league in ["EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1"] and year<2010:
             error = "Year invalid for source WhoScored and league {}. Year must be 2010 or later.".format(league)
+            yr_valid = False
     return error, yr_valid
 
 
