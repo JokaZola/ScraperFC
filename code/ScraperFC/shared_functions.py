@@ -6,6 +6,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from IPython.display import clear_output
 import random
+import pandas as pd
+import numpy as np
 
 
 def check_season(year,league,source):
@@ -65,37 +67,64 @@ def check_season(year,league,source):
 
 
 def get_proxy():
+    """ Adapted from https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address """
     options = Options()
     options.headless = True
     options.add_argument("window-size=700,600")
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     clear_output()
-
+    
     driver.get("https://sslproxies.org/")
-    driver.execute_script(
-        "return arguments[0].scrollIntoView(true);",
-        WebDriverWait(driver, 20).until(
-            EC.visibility_of_element_located((
-                By.XPATH,
-                "//table[@class='table table-striped table-bordered dataTable']//th[contains(., 'IP Address')]"
-            ))
-        )
-    )
-#     ips = list()
-    ips = [my_elem.get_attribute("innerHTML") 
-           for my_elem in WebDriverWait(driver, 5).until(
-               EC.visibility_of_all_elements_located((
-                   By.XPATH, 
-                   "//table[@class='table table-striped table-bordered dataTable']//tbody//tr[@role='row']/td[position() = 1]"
-               ))
-            )]
-    ports = [my_elem.get_attribute("innerHTML") 
-             for my_elem in WebDriverWait(driver, 5).until(
-                 EC.visibility_of_all_elements_located((
-                     By.XPATH, 
-                     "//table[@class='table table-striped table-bordered dataTable']//tbody//tr[@role='row']/td[position() = 2]"
-                 ))
-             )]
+    table = driver.find_element_by_xpath("//table[@class='table table-striped table-bordered']")
+    df = pd.read_html(table.get_attribute('outerHTML'))[0]
+    df = df.iloc[np.where(~np.isnan(df['Port']))[0],:] # ignore nans
+    
+    ips = df['IP Address'].values
+    ports = df['Port'].astype('int').values
+    
+#     df = pd.read_html("https://sslproxies.org/")
+#     return df
+
+#     driver.get("https://sslproxies.org/")
+#     driver.execute_script(
+#         "return arguments[0].scrollIntoView(true);",
+#         WebDriverWait(driver, 20).until(
+#             EC.visibility_of_element_located((
+#                 By.XPATH,
+# #                 "//table[@class='table table-striped table-bordered dataTable']" + \
+# #                     "//th[contains(., 'IP Address')]"
+#                 "//table[@class='table table-striped table-bordered']//th[contains" + \
+#                     "(., 'IP Address')]"
+#             ))
+#         )
+#     )
+#     ips = [my_elem.get_attribute("innerHTML") 
+#            for my_elem in WebDriverWait(driver, 5).until(
+#                EC.visibility_of_all_elements_located((
+#                    By.XPATH, 
+# #                    "//table[@class='table table-striped table-bordered dataTable']" + \
+# #                        "//tbody//tr[@role='row']/td[position() = 1]"
+#                    "//table[@class='table table-striped table-bordered']/tbody/tr/td" + \
+#                        "[count(//table[@class='table table-striped table-bordered']" + \
+#                        "/thead/tr/th[.='IP Address'])]"
+#                ))
+#             )]
+#     for el in driver.find_elements_by_xpath("//table[@class='table table-striped table-bordered']/tbody/tr/td" + \
+#                        "[count(//table[@class='table table-striped table-bordered']" + \
+#                        "/thead/tr/th[.='Port'])]"):
+#         print(el.text)
+#     ports = [my_elem.get_attribute("innerHTML") 
+#              for my_elem in WebDriverWait(driver, 5).until(
+#                  EC.visibility_of_all_elements_located((
+#                      By.XPATH, 
+# #                      "//table[@class='table table-striped table-bordered dataTable']" + \
+# #                          "//tbody//tr[@role='row']/td[position() = 2]"
+#                      "//table[@class='table table-striped table-bordered']/tbody/tr/td" + \
+#                        "[count(//table[@class='table table-striped table-bordered']" + \
+#                        "/thead/tr/th[.='Port'])]"
+#                  ))
+#              )]
+
     driver.quit()
     proxies = list()
     for i in range(len(ips)):

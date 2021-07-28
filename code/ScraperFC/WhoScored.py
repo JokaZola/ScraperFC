@@ -19,7 +19,7 @@ class WhoScored():
     def __init__(self):
         options = Options()
 #         options.add_argument('--headless')
-        options.add_argument('window-size=1400,600')
+        options.add_argument('window-size=700,600')
         options.add_argument("--log-level=0")
 #         options.add_argument('--no-sandbox')
 #         options.add_argument('--disable-dev-shm-usage')
@@ -146,8 +146,8 @@ class WhoScored():
             try_count = 0
             while match_data[link] == '':
                 try_count += 1
-                if try_count > 5:
-                    print('Failed to scrape match from {}'.format(link))
+                if try_count > 10:
+                    print('Failed to scrape match {}/{} from {}'.format(i, len(match_data), link))
                     return -1
                 try:
                     print('{}\rScraping match data for match {}/{} in the {}-{} {} season from {}' \
