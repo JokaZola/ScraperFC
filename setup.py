@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     
 setuptools.setup(
     name = 'ScraperFC',
-    version = '1.5.2',
+    version = '1.6.0',
     author = 'Owen Seymour',
     author_email = 'osmour043@gmail.com',
     description = 'Package for scraping soccer data from a variety of sources.',
@@ -15,20 +15,18 @@ setuptools.setup(
     package_dir = {"":"code"},
     packages = setuptools.find_packages(where="code"),
     keywords = ["soccer","football","Premier League","Serie A",
-                "La Liga","Bundesliga","Ligue 1"],
-    install_requires = [
-        "selenium", 
-        "webdriver-manager",
-        "pandas",
-        "numpy",
-        "datetime",
-        "ipython"
-    ],
-    classifiers = [ 
-        'Programming Language :: Python :: 3',
-        "License :: OSI Approved :: MIT License",
-        'Operating System :: OS Independent'
-    ],
+                "La Liga","Bundesliga","Ligue 1",'web scraping',
+                'data'],
+    install_requires = ["selenium", 
+                        "webdriver-manager",
+                        "pandas",
+                        "numpy",
+                        "datetime",
+                        "ipython",
+                        'traceback'],
+    classifiers = ['Programming Language :: Python :: 3',
+                   "License :: OSI Approved :: MIT License",
+                   'Operating System :: OS Independent'],
     python_requires = '>=3.6'
 )
   

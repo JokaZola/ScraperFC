@@ -20,14 +20,14 @@ class WhoScored():
         options = Options()
 #         options.add_argument('--headless')
         options.add_argument('window-size=700,600')
-        options.add_argument("--log-level=0")
+#         options.add_argument("--log-level=0")
 #         options.add_argument('--no-sandbox')
 #         options.add_argument('--disable-dev-shm-usage')
 #         options.add_argument('disable-infobars')
 #         options.add_argument('--disable-extensions')
         # Use proxy
         proxy = get_proxy()
-        options.add_argument('--proxy-server={}'.format(proxy))
+        options.add_argument('--proxy-server="http={};https={}"'.format(proxy, proxy))
         # don't load images
         prefs = {'profile.managed_default_content_settings.images': 2}
         options.add_experimental_option('prefs', prefs)
