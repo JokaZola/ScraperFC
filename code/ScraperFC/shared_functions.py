@@ -75,60 +75,24 @@ def get_proxy():
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     clear_output()
     
-    driver.get("https://sslproxies.org/")
-    table = driver.find_element_by_xpath("//table[@class='table table-striped table-bordered']")
-    df = pd.read_html(table.get_attribute('outerHTML'))[0]
-    df = df.iloc[np.where(~np.isnan(df['Port']))[0],:] # ignore nans
-    
-    ips = df['IP Address'].values
-    ports = df['Port'].astype('int').values
-    
-#     df = pd.read_html("https://sslproxies.org/")
-#     return df
+    try:
+        driver.get("https://sslproxies.org/")
+        # on some machines the xpath is "//table[@class='table table-striped table-bordered dataTable']"???
+#         table = driver.find_element_by_xpath("//table[@class='table table-striped table-bordered']")
+        table = driver.find_elements_by_tag_name('table')[0]
+        df = pd.read_html(table.get_attribute('outerHTML'))[0]
+        df = df.iloc[np.where(~np.isnan(df['Port']))[0],:] # ignore nans
 
-#     driver.get("https://sslproxies.org/")
-#     driver.execute_script(
-#         "return arguments[0].scrollIntoView(true);",
-#         WebDriverWait(driver, 20).until(
-#             EC.visibility_of_element_located((
-#                 By.XPATH,
-# #                 "//table[@class='table table-striped table-bordered dataTable']" + \
-# #                     "//th[contains(., 'IP Address')]"
-#                 "//table[@class='table table-striped table-bordered']//th[contains" + \
-#                     "(., 'IP Address')]"
-#             ))
-#         )
-#     )
-#     ips = [my_elem.get_attribute("innerHTML") 
-#            for my_elem in WebDriverWait(driver, 5).until(
-#                EC.visibility_of_all_elements_located((
-#                    By.XPATH, 
-# #                    "//table[@class='table table-striped table-bordered dataTable']" + \
-# #                        "//tbody//tr[@role='row']/td[position() = 1]"
-#                    "//table[@class='table table-striped table-bordered']/tbody/tr/td" + \
-#                        "[count(//table[@class='table table-striped table-bordered']" + \
-#                        "/thead/tr/th[.='IP Address'])]"
-#                ))
-#             )]
-#     for el in driver.find_elements_by_xpath("//table[@class='table table-striped table-bordered']/tbody/tr/td" + \
-#                        "[count(//table[@class='table table-striped table-bordered']" + \
-#                        "/thead/tr/th[.='Port'])]"):
-#         print(el.text)
-#     ports = [my_elem.get_attribute("innerHTML") 
-#              for my_elem in WebDriverWait(driver, 5).until(
-#                  EC.visibility_of_all_elements_located((
-#                      By.XPATH, 
-# #                      "//table[@class='table table-striped table-bordered dataTable']" + \
-# #                          "//tbody//tr[@role='row']/td[position() = 2]"
-#                      "//table[@class='table table-striped table-bordered']/tbody/tr/td" + \
-#                        "[count(//table[@class='table table-striped table-bordered']" + \
-#                        "/thead/tr/th[.='Port'])]"
-#                  ))
-#              )]
+        ips = df['IP Address'].values
+        ports = df['Port'].astype('int').values
 
-    driver.quit()
-    proxies = list()
-    for i in range(len(ips)):
-        proxies.append('{}:{}'.format(ips[i], ports[i]))
-    i = random.randint(0, len(proxies)-1)
-    return proxies[i]
+        driver.quit()
+        proxies = list()
+        for i in range(len(ips)):
+            proxies.append('{}:{}'.format(ips[i], ports[i]))
+        i = random.randint(0, len(proxies)-1)
+        return proxies[i]
+    except Exception as e:
+        driver.close()
+        driver.quit()
+        raise e
