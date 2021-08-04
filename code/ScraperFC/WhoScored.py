@@ -51,14 +51,17 @@ class WhoScored():
         done = False
         while not done:
             try:
+                print('League page status before: {}'.format(self.driver.execute_script('return document.readyState')))
                 self.driver.get(links[league])
+                print('League page status after: {}'.format(self.driver.execute_script('return document.readyState')))
                 done = True
             except:
-                self.close()
-                self.__init__()
-                time.sleep(5)
-#         while self.driver.execute_script('return document.readyState') != complete:
-#             time.sleep(1)
+                import traceback
+                traceback.print_exc()
+                return -1
+#                 self.close()
+#                 self.__init__()
+#                 time.sleep(5)
         print('League page status: {}'.format(self.driver.execute_script('return document.readyState')))
         # Wait for season dropdown to be accessible
 #         season_dropdown = WebDriverWait(self.driver, 10, ignored_exceptions=['TimeoutException']) \
