@@ -4,4 +4,3 @@ pandas
 numpy
 datetime
 ipython
-traceback
