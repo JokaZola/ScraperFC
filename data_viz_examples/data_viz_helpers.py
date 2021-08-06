@@ -58,9 +58,9 @@ def plot_field(ax):
 
 
 def plot_goalmouth(ax):
-    ax.plot([0,0], [0,8], color='black') # left post
-    ax.plot([0,24], [8,8], color='black') # crossbar
-    ax.plot([24,24], [8,0], color='black') # right post
+    ax.plot([0,0], [0,8], color='black', linewidth=5) # left post
+    ax.plot([0,24], [8,8], color='black', linewidth=5) # crossbar
+    ax.plot([24,24], [8,0], color='black', linewidth=5) # right post
     
     ax.set_aspect('equal')
     ax.get_xaxis().set_visible(False)

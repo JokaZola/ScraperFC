@@ -51,9 +51,7 @@ class WhoScored():
         done = False
         while not done:
             try:
-                print('League page status before: {}'.format(self.driver.execute_script('return document.readyState')))
                 self.driver.get(links[league])
-                print('League page status after: {}'.format(self.driver.execute_script('return document.readyState')))
                 done = True
             except:
                 import traceback
