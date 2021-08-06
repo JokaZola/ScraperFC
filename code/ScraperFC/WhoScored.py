@@ -155,6 +155,9 @@ class WhoScored():
                               .format(' '*500, i, len(match_data), year-1, year, league, link), end='\r')
                     match_data[link] = self.scrape_match(link)
                 except:
+                    print('Error encountered. Saving output and restarting webdriver.')
+                    with open(save_filename, 'w') as f:
+                        f.write(json.dumps(match_data))
                     self.close()
                     self.__init__()
                     time.sleep(5)
