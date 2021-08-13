@@ -54,11 +54,12 @@ class WhoScored():
                 self.driver.get(links[league])
                 done = True
             except:
-                self.close()
-                self.__init__()
-                time.sleep(5)
-#         while self.driver.execute_script('return document.readyState') != complete:
-#             time.sleep(1)
+                import traceback
+                traceback.print_exc()
+                return -1
+#                 self.close()
+#                 self.__init__()
+#                 time.sleep(5)
         print('League page status: {}'.format(self.driver.execute_script('return document.readyState')))
         # Wait for season dropdown to be accessible
 #         season_dropdown = WebDriverWait(self.driver, 10, ignored_exceptions=['TimeoutException']) \
@@ -154,6 +155,9 @@ class WhoScored():
                               .format(' '*500, i, len(match_data), year-1, year, league, link), end='\r')
                     match_data[link] = self.scrape_match(link)
                 except:
+                    print('Error encountered. Saving output and restarting webdriver.')
+                    with open(save_filename, 'w') as f:
+                        f.write(json.dumps(match_data))
                     self.close()
                     self.__init__()
                     time.sleep(5)

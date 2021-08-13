@@ -777,8 +777,54 @@ class FBRef:
                 "Misc":                 self.scrape_misc(year,league,normalize,player)
             }
         return out
-    
 
+
+    def scrape_matches(self, year, league, save=False):
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return -1
+        season = str(year-1)+'-'+str(year)
+        links = self.get_match_links(year,league)
+        failures = []
+        
+        # initialize df
+        if year >= 2018:
+            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
+                    'Home Ast','Away Ast','FBRef Home xG','FBRef Away xG','Home npxG',
+                    'Away npxG','FBRef Home xA','FBRef Away xA','Home psxG','Away psxG']
+        else:
+            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals']
+        matches = pd.DataFrame(columns=cols)
+        
+        # scrape match data
+        for i,link in enumerate(links):
+            print('Scraping match ' + str(i+1) + '/' + str(len(links)) +
+                  ' from FBRef in the ' + season + ' ' + league + ' season.')
+            
+            try:
+                match = self.scrape_match(link, year, league)
+                matches = matches.append(match, ignore_index=True)
+            except:
+                failures.append(link)
+            clear_output()
+            
+        # Print out the failed scrapes
+        if len(failures) > 0:
+            print("Unable to scrape match data from")
+            for link in failures:
+                print(link)
+        
+        # save to CSV if requested by user
+        if save:
+            filename = season+"_"+league+"_FBRef_matches.csv"
+            matches.to_csv(path_or_buf=filename, index=False)
+            print('Matches dataframe saved to ' + filename)
+            return filename
+        else:
+            return matches
+        
+        
     def scrape_match(self, link, year, league):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -838,16 +884,8 @@ class FBRef:
                 spliton = '-Division-1'
         
         # Get date of the match
-        months = [
-            "January", "February", "March", "April", 
-            "May", "June", "July", "August", "September", 
-            "October", "November", "December"
-        ]
-        date = []
-        for d in link.split("/")[-1].split("-"):
-            if d.isnumeric() or d in months:
-                date.append(d)
-        date = "-".join(date)
+        date_elements = link.split("/")[-1].split("-")[-4:-1]
+        date = '-'.join(date_elements)
         date = datetime.datetime.strptime(date,'%B-%d-%Y').date()
         
         match = pd.Series()
@@ -858,7 +896,6 @@ class FBRef:
         match["Away Formation"] = df[1].columns[0].split("(")[-1].split(")")[0]
         
         if year >= 2018:
-            
             match['Home Goals'] = np.array(df[3][('Performance','Gls')])[-1]
             match['Away Goals'] = np.array(df[10][('Performance','Gls')])[-1]
             match['Home Ast'] = np.array(df[3][('Performance','Ast')])[-1]
@@ -880,12 +917,11 @@ class FBRef:
                     "Passing": df[4],
                     "Pass Types": df[5],
                     "Defensive": df[6],
-                    "Possesson": df[7],
+                    "Possession": df[7],
                     "Misc": df[8],
                     "GK": df[9]
                 }
             )
-            
             match["Away Player Stats"] = pd.Series(
                 {
                     "Team Sheet": df[1],
@@ -893,64 +929,17 @@ class FBRef:
                     "Passing": df[11],
                     "Pass Types": df[12],
                     "Defensive": df[13],
-                    "Possesson": df[14],
+                    "Possession": df[14],
                     "Misc": df[15],
                     "GK": df[16]
                 }
             )
                 
         else:
-            
             match['Home Goals'] = np.array(df[3][('Performance','Gls')])[-1]
             match['Away Goals'] = np.array(df[5][('Performance','Gls')])[-1]
             match['Home Ast'] = np.array(df[3][('Performance','Ast')])[-1]
             match['Away Ast'] = np.array(df[5][('Performance','Ast')])[-1]
             
         return match 
-
-
-    def scrape_matches(self, year, league, save=False):
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        season = str(year-1)+'-'+str(year)
-        links = self.get_match_links(year,league)
-        failures = []
-        
-        # initialize df
-        if year >= 2018:
-            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
-                    'Home Ast','Away Ast','FBRef Home xG','FBRef Away xG','Home npxG',
-                    'Away npxG','FBRef Home xA','FBRef Away xA','Home psxG','Away psxG']
-        else:
-            cols = ['Date','Home Team','Away Team','Home Goals','Away Goals']
-        matches = pd.DataFrame(columns=cols)
-        
-        # scrape match data
-        for i,link in enumerate(links):
-            print('Scraping match ' + str(i+1) + '/' + str(len(links)) +
-                  ' from FBRef in the ' + season + ' ' + league + ' season.')
-            
-            try:
-                match = self.scrape_match(link, year, league)
-                matches = matches.append(match, ignore_index=True)
-            except:
-                failures.append(link)
-            clear_output()
-            
-        # Print out the failed scrapes
-        if len(failures) > 0:
-            print("Unable to scrape match data from")
-            for link in failures:
-                print(link)
-        
-        # save to CSV if requested by user
-        if save:
-            filename = season+"_"+league+"_FBRef_matches.csv"
-            matches.to_csv(path_or_buf=filename, index=False)
-            print('Matches dataframe saved to ' + filename)
-            return filename
-        else:
-            return matches
         
