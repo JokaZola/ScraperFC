@@ -1,13 +1,14 @@
+import datetime
+from IPython.display import clear_output
+import json
+import numpy as np
+import pandas as pd
+from ScraperFC.shared_functions import check_season
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-import pandas as pd
-import numpy as np
-from IPython.display import clear_output
-from ScraperFC.shared_functions import check_season
-import datetime
 import time
-import json
+from webdriver_manager.chrome import ChromeDriverManager
+
 
 
 class Understat:
@@ -208,7 +209,8 @@ class Understat:
             df.loc[i,"xPTS"] = self.remove_diff(df.loc[i,"xPTS"])
             
         if normalize:
-            df.iloc[:,3:] = df.iloc[:,3:].divide(df["M"], axis="rows")
+            df.iloc[:,3:14] = df.iloc[:,3:14].divide(df["M"], axis="rows")
+            df.iloc[:,16:] = df.iloc[:,16:].divide(df["M"], axis="rows")
         
         self.close()
         self.__init__()
@@ -280,8 +282,10 @@ class Understat:
             away.loc[i,"xPTS"] = self.remove_diff(away.loc[i,"xPTS"])
         
         if normalize:
-            home.iloc[:,3:] = home.iloc[:,3:].divide(home["M"], axis="rows")
-            away.iloc[:,3:] = away.iloc[:,3:].divide(away["M"], axis="rows")
+            home.iloc[:,3:14] = home.iloc[:,3:14].divide(home["M"], axis="rows")
+            home.iloc[:,16:] = home.iloc[:,16:].divide(home["M"], axis="rows")
+            away.iloc[:,3:14] = away.iloc[:,3:14].divide(away["M"], axis="rows")
+            away.iloc[:,16:] = away.iloc[:,16:].divide(away["M"], axis="rows")
         
         self.close()
         self.__init__()
