@@ -6,6 +6,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from IPython.display import clear_output
 import random
+import pandas as pd
+import numpy as np
 
 
 def check_season(year,league,source):
@@ -61,32 +63,36 @@ def check_season(year,league,source):
     elif source == "WhoScored":
         if league in ["EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1"] and year<2010:
             error = "Year invalid for source WhoScored and league {}. Year must be 2010 or later.".format(league)
+            yr_valid = False
     return error, yr_valid
 
 
 def get_proxy():
+    """ Adapted from https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address """
     options = Options()
-    options.headless = True
-    options.add_argument("window-size=1400,600")
+#     options.headless = True
+    options.add_argument("window-size=700,600")
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     clear_output()
+    
+    try:
+        driver.get("https://sslproxies.org/")
+        # on some machines the xpath is "//table[@class='table table-striped table-bordered dataTable']"???
+#         table = driver.find_element_by_xpath("//table[@class='table table-striped table-bordered']")
+        table = driver.find_elements_by_tag_name('table')[0]
+        df = pd.read_html(table.get_attribute('outerHTML'))[0]
+        df = df.iloc[np.where(~np.isnan(df['Port']))[0],:] # ignore nans
 
-    driver.get("https://sslproxies.org/")
-    driver.execute_script(
-        "return arguments[0].scrollIntoView(true);", 
-        WebDriverWait(driver, 20).until(
-            EC.visibility_of_element_located((
-                By.XPATH,
-                "//table[@class='table table-striped table-bordered dataTable']//th[contains(., 'IP Address')]"
-            ))
-        )
-    )
-    ips = list()
-    ips = [my_elem.get_attribute("innerHTML") for my_elem in WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@class='table table-striped table-bordered dataTable']//tbody//tr[@role='row']/td[position() = 1]")))]
-    ports = [my_elem.get_attribute("innerHTML") for my_elem in WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@class='table table-striped table-bordered dataTable']//tbody//tr[@role='row']/td[position() = 2]")))]
-    driver.quit()
-    proxies = list()
-    for i in range(len(ips)):
-        proxies.append('{}:{}'.format(ips[i], ports[i]))
-    i = random.randint(0, len(proxies)-1)
-    return proxies[i]
+        ips = df['IP Address'].values
+        ports = df['Port'].astype('int').values
+
+        driver.quit()
+        proxies = list()
+        for i in range(len(ips)):
+            proxies.append('{}:{}'.format(ips[i], ports[i]))
+        i = random.randint(0, len(proxies)-1)
+        return proxies[i]
+    except Exception as e:
+        driver.close()
+        driver.quit()
+        raise e
