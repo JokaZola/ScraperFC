@@ -1,13 +1,14 @@
+import datetime
+from IPython.display import clear_output
+import json
+import numpy as np
+import pandas as pd
+from ScraperFC.shared_functions import check_season
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-import pandas as pd
-import numpy as np
-from IPython.display import clear_output
-from ScraperFC.shared_functions import check_season
-import datetime
 import time
-import json
+from webdriver_manager.chrome import ChromeDriverManager
+
 
 
 class Understat:
@@ -159,7 +160,8 @@ class Understat:
         
         url = self.get_season_link(year, league) # link to the selected league/season
         self.driver.get(url)
-
+        
+        # show all of the stats
         time.sleep(1)
         self.driver.find_elements_by_class_name("options-button")[0].click()
         time.sleep(1)
@@ -199,7 +201,6 @@ class Understat:
         table = self.driver.find_elements_by_tag_name("table")[0].get_attribute("innerHTML")
         table = "<table>\n"+table+"</table>"
         df = pd.read_html(table)[0]
-        df.drop(columns='№', inplace=True)
         
         # remove performance differential text from some columns
         for i in range(df.shape[0]):
@@ -208,9 +209,87 @@ class Understat:
             df.loc[i,"xPTS"] = self.remove_diff(df.loc[i,"xPTS"])
             
         if normalize:
-            df.iloc[:,2:] = df.iloc[:,2:].divide(df["M"], axis="rows")
+            df.iloc[:,3:14] = df.iloc[:,3:14].divide(df["M"], axis="rows")
+            df.iloc[:,16:] = df.iloc[:,16:].divide(df["M"], axis="rows")
         
+        self.close()
+        self.__init__()
         return df
+    
+    
+    def scrape_home_away_tables(self, year, league, normalize=False):
+        if not check_season(year,league,'Understat'):
+            return -1
+        
+        url = self.get_season_link(year, league) # link to the selected league/season
+        self.driver.get(url)
+
+        # show all of the stats
+        time.sleep(1)
+        self.driver.find_elements_by_class_name("options-button")[0].click()
+        time.sleep(1)
+        # npxG
+        self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]"+
+            "/div/div[2]/div/div[2]/div[2]/div/div[11]/div[2]/label").click()
+        time.sleep(1)
+        # npxGA
+        self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]"+
+            "/div/div[2]/div/div[2]/div[2]/div/div[13]/div[2]/label").click()
+        time.sleep(1)
+        # npxGD
+        self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]"+
+            "/div/div[2]/div/div[2]/div[2]/div/div[14]/div[2]/label").click()
+        time.sleep(1)
+        # PPDA
+        self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]"+
+            "/div/div[2]/div/div[2]/div[2]/div/div[15]/div[2]/label").click()
+        time.sleep(1)
+        # OPPDA
+        self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]"+
+            "/div/div[2]/div/div[2]/div[2]/div/div[16]/div[2]/label").click()
+        time.sleep(1)
+        # DC
+        self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]"+
+            "/div/div[2]/div/div[2]/div[2]/div/div[17]/div[2]/label").click()
+        time.sleep(1)
+        # ODC
+        self.driver.find_element_by_xpath("/html/body/div[1]/div[3]/div[3]"+
+            "/div/div[2]/div/div[2]/div[2]/div/div[18]/div[2]/label").click()
+        time.sleep(1)
+
+        self.driver.find_elements_by_class_name("button-apply")[0].click() # apply button
+        time.sleep(1)
+        
+        # get home table
+        labels = self.driver.find_elements_by_tag_name('label')
+        [el for el in labels if el.text=='home'][0].click()
+        table = self.driver.find_elements_by_tag_name('table')[0].get_attribute('outerHTML')
+        home = pd.read_html(table)[0]
+        
+        
+        # get away table
+        [el for el in labels if el.text=='away'][0].click()
+        table = self.driver.find_elements_by_tag_name('table')[0].get_attribute('outerHTML')
+        away = pd.read_html(table)[0]
+        
+        # remove differentials from some columns
+        for i in range(home.shape[0]):
+            home.loc[i,"xG"] = self.remove_diff(home.loc[i,"xG"])
+            home.loc[i,"xGA"] = self.remove_diff(home.loc[i,"xGA"])
+            home.loc[i,"xPTS"] = self.remove_diff(home.loc[i,"xPTS"])
+            away.loc[i,"xG"] = self.remove_diff(away.loc[i,"xG"])
+            away.loc[i,"xGA"] = self.remove_diff(away.loc[i,"xGA"])
+            away.loc[i,"xPTS"] = self.remove_diff(away.loc[i,"xPTS"])
+        
+        if normalize:
+            home.iloc[:,3:14] = home.iloc[:,3:14].divide(home["M"], axis="rows")
+            home.iloc[:,16:] = home.iloc[:,16:].divide(home["M"], axis="rows")
+            away.iloc[:,3:14] = away.iloc[:,3:14].divide(away["M"], axis="rows")
+            away.iloc[:,16:] = away.iloc[:,16:].divide(away["M"], axis="rows")
+        
+        self.close()
+        self.__init__()
+        return home, away
     
     
     def scrape_situations(self, year, league):
@@ -252,6 +331,8 @@ class Understat:
                 ignore_index=True
             )
         
+        self.close()
+        self.__init__()
         return situations
     
     
@@ -287,7 +368,9 @@ class Understat:
                 
                 if formation not in formations[team_name].keys():
                     formations[team_name][formation] = df.iloc[i,:].drop(columns=["№","Formation"])                
-                    
+                
+        self.close()
+        self.__init__()
         return formations
     
     
@@ -342,6 +425,9 @@ class Understat:
                 pd.DataFrame(row_array.reshape(1,-1), columns=game_states.columns),
                 ignore_index=True
             )
+            
+        self.close()
+        self.__init__()
         return game_states
     
     
@@ -398,6 +484,9 @@ class Understat:
                 pd.DataFrame(row_array.reshape(1,-1), columns=timing_df.columns),
                 ignore_index=True
             )
+            
+        self.close()
+        self.__init__()
         return timing_df
     
     
@@ -454,6 +543,9 @@ class Understat:
                 pd.DataFrame(row_array.reshape(1,-1), columns=shot_zones_df.columns),
                 ignore_index=True
             )
+            
+        self.close()
+        self.__init__()
         return shot_zones_df
     
     
@@ -507,6 +599,9 @@ class Understat:
                 pd.DataFrame(row_array.reshape(1,-1), columns=attack_speeds_df.columns),
                 ignore_index=True
             )
+            
+        self.close()
+        self.__init__()
         return attack_speeds_df
     
     
@@ -561,6 +656,9 @@ class Understat:
                 pd.DataFrame(row_array.reshape(1,-1), columns=shot_results_df.columns),
                 ignore_index=True
             )
+            
+        self.close()
+        self.__init__()
         return shot_results_df
             
 
@@ -593,6 +691,9 @@ class Understat:
                 failures.append(match_id)
                 shots_data[match_id] = "Error scraping"
             clear_output()
+            
+        self.close()
+        self.__init__()
 
         # save to JSON file
         if save:
