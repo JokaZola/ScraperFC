@@ -135,6 +135,7 @@ class FBRef:
         df.insert(insert_index, 'team_id', team_ids)
         return df
 
+    
     def add_player_ids(self, df, url):
         self.driver.get(url)
         player_ids = list()
@@ -200,9 +201,9 @@ class FBRef:
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
             df.drop(columns="Per 90 Minutes", level=0, inplace=True)
             df.drop(columns="Matches", level=1, inplace=True)
-            # convert type from str to float
+            # convert some column types from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             # add some calculated columns
             df[("Performance","G+A")] = df[("Performance","Gls")] - df[("Performance","Ast")]
@@ -234,7 +235,6 @@ class FBRef:
             # Get team IDs
             squad = self.add_team_ids(squad, 1, new, 'th') 
             vs = self.add_team_ids(vs, 1, new, 'th')
-
             return squad, vs
     
 
@@ -268,7 +268,7 @@ class FBRef:
             df.drop(columns="Matches", level=1, inplace=True)
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -318,7 +318,7 @@ class FBRef:
             df.drop(columns=["Matches", "#OPA/90", "/90"], level=1, inplace=True)
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -369,7 +369,7 @@ class FBRef:
             df.drop(columns="Matches", level=1, inplace=True)
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -428,7 +428,7 @@ class FBRef:
             )
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -479,7 +479,7 @@ class FBRef:
             )
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -523,7 +523,7 @@ class FBRef:
             df.drop(columns=["SCA90", "GCA90", "Matches"], level=1, inplace=True)
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -571,7 +571,7 @@ class FBRef:
             )
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -622,7 +622,7 @@ class FBRef:
             )
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -670,7 +670,7 @@ class FBRef:
                 df.drop(columns="xG+/-90", level=1, inplace=True)
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
@@ -721,7 +721,7 @@ class FBRef:
             df.drop(columns="Matches", level=1, inplace=True)
             # convert type from str to float
             for col in list(df.columns.get_level_values(0)):
-                if col not in ["Unnamed: 1_level_0", "Unnamed: 2_level_0", "Unnamed: 3_level_0", "Unnamed: 4_level_0"]:
+                if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             df = self.add_player_ids(df, new) # get player IDs
             return df
