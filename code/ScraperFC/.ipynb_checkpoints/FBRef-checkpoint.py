@@ -1,11 +1,11 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-import pandas as pd
-import numpy as np
 import datetime
-from IPython.display import clear_output
-from ScraperFC.shared_functions import check_season
+from   IPython.display import clear_output
+import numpy as np
+import pandas as pd
+from   ScraperFC.shared_functions import check_season
+from   selenium import webdriver
+from   selenium.webdriver.chrome.options import Options
+from   webdriver_manager.chrome import ChromeDriverManager
 
 class FBRef:
     
@@ -45,9 +45,9 @@ class FBRef:
         elif league == "Ligue 1":
             url = "https://fbref.com/en/comps/13/history/Ligue-1-Seasons"
             if year >= 2003:
-                finder = '-Ligue-1'
+                finder = 'Ligue-1'
             else:
-                finder = '-Division-1'
+                finder = 'Division-1'
 
         elif league == "MLS":
             url = "https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons"
@@ -88,38 +88,36 @@ class FBRef:
                 finder = '-Premier-League'
             else:
                 finder = '-Premiership'
-
         elif league == 'La Liga':
             finder = '-La-Liga'
-
         elif league == 'Bundesliga':
             finder = '-Bundesliga'
-
         elif league == 'Serie A':
             finder = '-Serie-A'
-
         elif league == 'Ligue 1':
             if year >= 2003:
                 finder = '-Ligue-1'
             else:
                 finder = '-Division-1'
-        
         elif league == "MLS":
             finder = "-Major-League-Soccer"
-
         else:
             print('ERROR: League not found. Options are \"EPL\", \"La Liga\", '+
                   '\"Bundesliga\", \"Serie A\", \"Ligue 1\", \"MLS\".')
             return -1
         
-        links = []
-        for element in self.driver.find_elements_by_tag_name('a'):
-            href = element.get_attribute('href')
-            if (href) and ('/matches/' in href) and (href.endswith(finder)) and (href not in links):
-                links.append(href)
+        links = set()
+        # only get match links from the fixtures table
+        for table in self.driver.find_elements_by_tag_name('table'):
+            if table.get_attribute('id')!='' and table.get_attribute('class')!='':
+                # find the match links
+                for element in table.find_elements_by_tag_name('a'):
+                    href = element.get_attribute('href')
+                    if (href) and ('/matches/' in href) and (href.endswith(finder)):
+                        links.add(href)
         clear_output()
         
-        return links
+        return list(links)
     
 
     def add_team_ids(self, df, insert_index, url, tag_name):
@@ -791,8 +789,9 @@ class FBRef:
         # initialize df
         if year >= 2018:
             cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
-                    'Home Ast','Away Ast','FBRef Home xG','FBRef Away xG','Home npxG',
-                    'Away npxG','FBRef Home xA','FBRef Away xA','Home psxG','Away psxG']
+                    'Home Ast','Away Ast','FBRef Home xG','FBRef Away xG','FBRef Home npxG',
+                    'FBRef Away npxG','FBRef Home xA','FBRef Away xA','FBRef Home psxG',
+                    'FBRef Away psxG', 'Home Player Stats', 'Away Player Stats']
         else:
             cols = ['Date','Home Team','Away Team','Home Goals','Away Goals']
         matches = pd.DataFrame(columns=cols)
@@ -805,19 +804,22 @@ class FBRef:
             try:
                 match = self.scrape_match(link, year, league)
                 matches = matches.append(match, ignore_index=True)
-            except:
-                failures.append(link)
+            except Exception as e:
+                failures.append([link, e])
             clear_output()
+            
+        # sort df by match date
+        matches = matches.sort_values(by='Date').reset_index(drop=True)
             
         # Print out the failed scrapes
         if len(failures) > 0:
-            print("Unable to scrape match data from")
-            for link in failures:
-                print(link)
+            print('Unable to scrape match data from')
+            for failure in failures:
+                print(failure, '\n')
         
         # save to CSV if requested by user
         if save:
-            filename = season+"_"+league+"_FBRef_matches.csv"
+            filename = '{}_{}_FBRef_matches.csv'.format(season, league.replace(' ','_'))
             matches.to_csv(path_or_buf=filename, index=False)
             print('Matches dataframe saved to ' + filename)
             return filename
@@ -884,9 +886,16 @@ class FBRef:
                 spliton = '-Division-1'
         
         # Get date of the match
-        date_elements = link.split("/")[-1].split("-")[-4:-1]
-        date = '-'.join(date_elements)
-        date = datetime.datetime.strptime(date,'%B-%d-%Y').date()
+        try:
+            # Try this first. Assumes league name is one word
+            date_elements = link.split("/")[-1].split("-")[-4:-1]
+            date = '-'.join(date_elements)
+            date = datetime.datetime.strptime(date,'%B-%d-%Y').date()
+        except:
+            # Assumes league name is two words
+            date_elements = link.split("/")[-1].split("-")[-5:-2]
+            date = '-'.join(date_elements)
+            date = datetime.datetime.strptime(date,'%B-%d-%Y').date()
         
         match = pd.Series()
         match['Date'] = str(date)
@@ -933,8 +942,7 @@ class FBRef:
                     "Misc": df[15],
                     "GK": df[16]
                 }
-            )
-                
+            )      
         else:
             match['Home Goals'] = np.array(df[3][('Performance','Gls')])[-1]
             match['Away Goals'] = np.array(df[5][('Performance','Gls')])[-1]
