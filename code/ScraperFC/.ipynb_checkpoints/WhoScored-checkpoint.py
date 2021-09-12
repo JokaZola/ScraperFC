@@ -19,15 +19,15 @@ class WhoScored():
     def __init__(self):
         options = Options()
 #         options.add_argument('--headless')
-        options.add_argument('window-size=1400,600')
-        options.add_argument("--log-level=0")
+        options.add_argument('window-size=700,600')
+#         options.add_argument("--log-level=0")
 #         options.add_argument('--no-sandbox')
 #         options.add_argument('--disable-dev-shm-usage')
 #         options.add_argument('disable-infobars')
 #         options.add_argument('--disable-extensions')
         # Use proxy
         proxy = get_proxy()
-        options.add_argument('--proxy-server={}'.format(proxy))
+        options.add_argument('--proxy-server="http={};https={}"'.format(proxy, proxy))
         # don't load images
         prefs = {'profile.managed_default_content_settings.images': 2}
         options.add_experimental_option('prefs', prefs)
@@ -54,11 +54,12 @@ class WhoScored():
                 self.driver.get(links[league])
                 done = True
             except:
-                self.close()
-                self.__init__()
-                time.sleep(5)
-#         while self.driver.execute_script('return document.readyState') != complete:
-#             time.sleep(1)
+                import traceback
+                traceback.print_exc()
+                return -1
+#                 self.close()
+#                 self.__init__()
+#                 time.sleep(5)
         print('League page status: {}'.format(self.driver.execute_script('return document.readyState')))
         # Wait for season dropdown to be accessible
 #         season_dropdown = WebDriverWait(self.driver, 10, ignored_exceptions=['TimeoutException']) \
@@ -146,14 +147,17 @@ class WhoScored():
             try_count = 0
             while match_data[link] == '':
                 try_count += 1
-                if try_count > 5:
-                    print('Failed to scrape match from {}'.format(link))
+                if try_count > 10:
+                    print('Failed to scrape match {}/{} from {}'.format(i, len(match_data), link))
                     return -1
                 try:
                     print('{}\rScraping match data for match {}/{} in the {}-{} {} season from {}' \
                               .format(' '*500, i, len(match_data), year-1, year, league, link), end='\r')
                     match_data[link] = self.scrape_match(link)
                 except:
+                    print('Error encountered. Saving output and restarting webdriver.')
+                    with open(save_filename, 'w') as f:
+                        f.write(json.dumps(match_data))
                     self.close()
                     self.__init__()
                     time.sleep(5)
@@ -172,10 +176,10 @@ class WhoScored():
             if 'require.config.params["args"]' in script:
                 match_data_string = script
         match_data_string = match_data_string.split(' = ')[1] \
-                .replace('matchId', '"matchId"') \
-                .replace('matchCentreData', '"matchCentreData"') \
-                .replace('matchCentreEventTypeJson', '"matchCentreEventTypeJson"') \
-                .replace('formationIdNameMappings', '"formationIdNameMappings"') \
-                .replace(';', '')
+            .replace('matchId', '"matchId"') \
+            .replace('matchCentreData', '"matchCentreData"') \
+            .replace('matchCentreEventTypeJson', '"matchCentreEventTypeJson"') \
+            .replace('formationIdNameMappings', '"formationIdNameMappings"') \
+            .replace(';', '')
         match_data = json.loads(match_data_string)
         return match_data

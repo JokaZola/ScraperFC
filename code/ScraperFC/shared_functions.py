@@ -70,7 +70,7 @@ def check_season(year,league,source):
 def get_proxy():
     """ Adapted from https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address """
     options = Options()
-#     options.headless = True
+    options.headless = True
     options.add_argument("window-size=700,600")
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     clear_output()

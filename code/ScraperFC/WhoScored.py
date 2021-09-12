@@ -176,10 +176,10 @@ class WhoScored():
             if 'require.config.params["args"]' in script:
                 match_data_string = script
         match_data_string = match_data_string.split(' = ')[1] \
-                .replace('matchId', '"matchId"') \
-                .replace('matchCentreData', '"matchCentreData"') \
-                .replace('matchCentreEventTypeJson', '"matchCentreEventTypeJson"') \
-                .replace('formationIdNameMappings', '"formationIdNameMappings"') \
-                .replace(';', '')
+            .replace('matchId', '"matchId"') \
+            .replace('matchCentreData', '"matchCentreData"') \
+            .replace('matchCentreEventTypeJson', '"matchCentreEventTypeJson"') \
+            .replace('formationIdNameMappings', '"formationIdNameMappings"') \
+            .replace(';', '')
         match_data = json.loads(match_data_string)
         return match_data
