@@ -20,9 +20,9 @@ def check_season(year,league,source):
         return error, False
     
     # make sure league is a valid string
-    if type(league) != str or league not in ["EPL","La Liga","Serie A","Ligue 1","Bundesliga", "USL League One", "MLS"]:
+    if type(league) != str or league not in ["EPL","La Liga","Serie A","Ligue 1","Bundesliga", "USL League One", "MLS", 'Argentina Liga Profesional']:
         error = "League needs to be a string. Options are \"EPL\", \"La Liga\", \"Bundesliga\", \"Serie A\", " + \
-            "\"Ligue 1\", \"USL League One\", \"MLS\"."
+            "\"Ligue 1\", \"USL League One\", \"MLS\", \"Argentina Liga Profesional\"."
         return error, False
     
     # make sure year is valid for a given source
@@ -64,13 +64,17 @@ def check_season(year,league,source):
         if league in ["EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1"] and year<2010:
             error = "Year invalid for source WhoScored and league {}. Year must be 2010 or later.".format(league)
             yr_valid = False
+        elif league == 'Argentina Liga Profesional' and year<2016:
+            error = "Year invalid for source WhoScored and league {}. Year must be 2016 or later.".format(league)
+            yr_valid = False
+    
     return error, yr_valid
 
 
 def get_proxy():
     """ Adapted from https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address """
     options = Options()
-#     options.headless = True
+    options.headless = True
     options.add_argument("window-size=700,600")
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     clear_output()

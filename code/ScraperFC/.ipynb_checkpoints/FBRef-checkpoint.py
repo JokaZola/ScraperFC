@@ -5,7 +5,9 @@ import pandas as pd
 from   ScraperFC.shared_functions import check_season
 from   selenium import webdriver
 from   selenium.webdriver.chrome.options import Options
+from   selenium.webdriver.common.by import By
 from   webdriver_manager.chrome import ChromeDriverManager
+
 
 class FBRef:
     
@@ -125,7 +127,8 @@ class FBRef:
         team_ids = list()
         for el in self.driver.find_elements_by_xpath('//{}[@data-stat="squad"]'.format(tag_name)):
             if el.text != '' and el.text != 'Squad':
-                team_id = el.find_element_by_tag_name('a') \
+#                 team_id = el.find_element_by_tag_name('a') \
+                team_id = el.find_element(By.TAG_NAME('a')) \
                     .get_attribute('href') \
                     .split('/squads/')[-1] \
                     .split('/')[0]
@@ -139,13 +142,23 @@ class FBRef:
         player_ids = list()
         for el in self.driver.find_elements_by_xpath('//td[@data-stat="player"]'):
             if el.text != '' and el.text != 'Player':
-                team_id = el.find_element_by_tag_name('a') \
+#                 team_id = el.find_element_by_tag_name('a') \
+                team_id = el.find_element(By.TAG_NAME, 'a') \
                     .get_attribute('href') \
                     .split('/players/')[-1] \
                     .split('/')[0]
                 player_ids.append(team_id)
         df.insert(2, 'player_id', player_ids)
         return df
+    
+    
+    def normalize_page(xpath):
+        button = self.driver.find_element(By.XPATH, xpath)
+        self.driver.execute_script("arguments[0].click()",button)
+     
+    
+    def get_html_w_id(ID):
+        return self.driver.find_element(By.ID, ID).get_attribute('outerHTML')
 
 
     def scrape_league_table(self, year, league, normalize=False):
@@ -190,10 +203,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_standard_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_standard_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH('//*[@id=\"stats_standard_per_match_toggle\"]'))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_standard").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_standard").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_standard')).get_attribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -255,10 +270,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_keeper_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_keeper_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_keeper_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_keeper").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_keeper").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID("stats_keeper")).get_attribute("outerHTML")
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -306,10 +323,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_keeper_adv_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_keeper_adv_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_keeper_adv_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_keeper_adv").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_keeper_adv").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID("stats_keeper_adv")).get_attribute("outerHTML")
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -356,10 +375,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_shooting_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_shooting_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_shooting_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_shooting").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_shooting").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID("stats_shooting")).get_attribute("outerHTML")
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -413,10 +434,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_passing_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_passing_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_passing_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_passing").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_passing").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_passing')).get_atttribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -464,10 +487,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_passing_types_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_passing_types_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_passing_types_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_passing_types").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_passing_types").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_passing_types')).get_atttribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -510,10 +535,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_gca_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_gca_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_gca_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_gca").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_gca").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_gca')).get_atttribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -556,10 +583,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_defense_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_defense_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_defense_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_defense").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_defense").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_defense')).get_atttribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -607,10 +636,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_possession_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_possession_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_possession_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_possession").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_possession").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_possession')).get_atttribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -655,10 +686,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_playing_time_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_playing_time_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_playing_time_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_playing_time").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_playing_time").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_playing_time')).get_atttribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
@@ -709,10 +742,12 @@ class FBRef:
         if player:
             self.driver.get(new)
             if normalize:
-                button = self.driver.find_element_by_xpath("//*[@id=\"stats_misc_per_match_toggle\"]")
+#                 button = self.driver.find_element_by_xpath("//*[@id=\"stats_misc_per_match_toggle\"]")
+                button = self.driver.find_element(By.XPATH("//*[@id=\"stats_misc_per_match_toggle\"]"))
                 self.driver.execute_script("arguments[0].click()",button)
             # get html and scrape table
-            html = self.driver.find_element_by_id("stats_misc").get_attribute("outerHTML")
+#             html = self.driver.find_element_by_id("stats_misc").get_attribute("outerHTML")
+            html = self.driver.find_element(By.ID('stats_misc')).get_atttribute('outerHTML')
             df = pd.read_html(html)[0]
             # drop duplicate header rows and link to match logs
             df = df[df[("Unnamed: 0_level_0","Rk")]!="Rk"].reset_index(drop=True)
