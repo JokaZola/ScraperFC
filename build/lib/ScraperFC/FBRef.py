@@ -7,10 +7,12 @@ from   selenium import webdriver
 from   selenium.webdriver.chrome.options import Options
 from   selenium.webdriver.common.by import By
 from   webdriver_manager.chrome import ChromeDriverManager
+from   urllib.request import urlopen
 
 
 class FBRef:
     
+    ################################################################################
     def __init__(self):
         options = Options()
         options.headless = True
@@ -18,12 +20,12 @@ class FBRef:
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         clear_output()
       
-        
+    ################################################################################    
     def close(self):
         self.driver.close()
         self.driver.quit()
 
-    
+    ################################################################################
     def get_season_link(self, year, league):
         if league == 'EPL':
             url = 'https://fbref.com/en/comps/9/history/Premier-League-Seasons'
@@ -71,7 +73,7 @@ class FBRef:
                 print('ERROR: Season not found.')
                 return -1
     
-
+    ################################################################################
     def get_match_links(self, year, league):
         print('Gathering match links.')
         url = self.get_season_link(year, league)
@@ -121,7 +123,7 @@ class FBRef:
         
         return list(links)
     
-
+    ################################################################################
     def add_team_ids(self, df, insert_index, url, tag_name):
         self.driver.get(url)
         team_ids = list()
@@ -135,10 +137,11 @@ class FBRef:
         df.insert(insert_index, 'team_id', team_ids)
         return df
 
-    
-    def add_player_ids(self, df, url):
+    ################################################################################
+    def add_player_ids_and_links(self, df, url):
         self.driver.get(url)
         player_ids = list()
+        player_links = list()
         for el in self.driver.find_elements_by_xpath('//td[@data-stat="player"]'):
             if el.text != '' and el.text != 'Player':
                 player_id = el.find_element(By.TAG_NAME, 'a') \
@@ -146,18 +149,21 @@ class FBRef:
                     .split('/players/')[-1] \
                     .split('/')[0]
                 player_ids.append(player_id)
-        df.insert(2, 'player_id', player_ids)
+                player_links.append(el.find_element(By.TAG_NAME, 'a').get_attribute('href'))
+        df.insert(2, 'player_id', player_ids) # insert player IDs as new col in df
+        df.insert(2, 'player_link', player_links) # insert player links as new col in df
         return df
     
-    
+    ################################################################################
     def normalize_table(self, xpath):
         button = self.driver.find_element(By.XPATH, xpath)
         self.driver.execute_script("arguments[0].click()",button)
     
+    ################################################################################
     def get_html_w_id(self, ID):
         return self.driver.find_element(By.ID, ID).get_attribute('outerHTML')
 
-
+    ################################################################################
     def scrape_league_table(self, year, league, normalize=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -188,7 +194,7 @@ class FBRef:
         lg_tbl = self.add_team_ids(lg_tbl, 2, url, 'td') # Get team IDs
         return lg_tbl
     
-
+    ################################################################################
     def scrape_standard(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -219,7 +225,7 @@ class FBRef:
             df[("Performance","G+A-PK")] = df[("Performance","G+A")] - df[("Performance","PK")]
             if year >= 2018:
                 df[("Expected","xG+xA")] = df[("Expected","xG")] + df[("Expected","xA")]
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -246,7 +252,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_gk(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -279,7 +285,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -300,7 +306,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_adv_gk(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -329,7 +335,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -353,7 +359,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_shooting(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -380,7 +386,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -407,7 +413,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_passing(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -439,7 +445,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -458,7 +464,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_passing_types(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -490,7 +496,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -503,8 +509,8 @@ class FBRef:
             squad = self.add_team_ids(squad, 1, new, 'th') 
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
-    
-
+       
+    ################################################################################
     def scrape_goal_shot_creation(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -534,7 +540,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -550,7 +556,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_defensive(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -582,7 +588,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -601,7 +607,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_possession(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -633,7 +639,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -652,7 +658,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_playing_time(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -681,7 +687,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -706,7 +712,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
     
-
+    ################################################################################
     def scrape_misc(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -732,7 +738,7 @@ class FBRef:
             for col in list(df.columns.get_level_values(0)):
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
-            df = self.add_player_ids(df, new) # get player IDs
+            df = self.add_player_ids_and_links(df, new) # get player IDs
             return df
         else:
             df = pd.read_html(new)
@@ -755,7 +761,7 @@ class FBRef:
             vs = self.add_team_ids(vs, 1, new, 'th')
             return squad, vs
         
-
+    ################################################################################
     def scrape_season(self, year, league, normalize=False, player=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -787,7 +793,7 @@ class FBRef:
             }
         return out
 
-
+    ################################################################################
     def scrape_matches(self, year, league, save=False):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -837,7 +843,7 @@ class FBRef:
         else:
             return matches
         
-        
+    ################################################################################    
     def scrape_match(self, link, year, league):
         err, valid = check_season(year,league,'FBRef')
         if not valid:
@@ -930,35 +936,130 @@ class FBRef:
             match['FBRef Home psxG'] = np.array(df[16][('Shot Stopping','PSxG')])[-1]
             match['FBRef Away psxG'] = np.array(df[9][('Shot Stopping','PSxG')])[-1]
             
-            match["Home Player Stats"] = pd.Series(
-                {
-                    "Team Sheet": df[0],
-                    "Summary": df[3],
-                    "Passing": df[4],
-                    "Pass Types": df[5],
-                    "Defensive": df[6],
-                    "Possession": df[7],
-                    "Misc": df[8],
-                    "GK": df[9]
-                }
-            )
-            match["Away Player Stats"] = pd.Series(
-                {
-                    "Team Sheet": df[1],
-                    "Summary": df[10],
-                    "Passing": df[11],
-                    "Pass Types": df[12],
-                    "Defensive": df[13],
-                    "Possession": df[14],
-                    "Misc": df[15],
-                    "GK": df[16]
-                }
-            )      
+            match["Home Player Stats"] = pd.Series({"Team Sheet": df[0],
+                                                    "Summary": df[3],
+                                                    "Passing": df[4],
+                                                    "Pass Types": df[5],
+                                                    "Defensive": df[6],
+                                                    "Possession": df[7],
+                                                    "Misc": df[8],
+                                                    "GK": df[9]})
+            match["Away Player Stats"] = pd.Series({"Team Sheet": df[1],
+                                                    "Summary": df[10],
+                                                    "Passing": df[11],
+                                                    "Pass Types": df[12],
+                                                    "Defensive": df[13],
+                                                    "Possession": df[14],
+                                                    "Misc": df[15],
+                                                    "GK": df[16]})      
         else:
             match['Home Goals'] = np.array(df[3][('Performance','Gls')])[-1]
             match['Away Goals'] = np.array(df[5][('Performance','Gls')])[-1]
             match['Home Ast'] = np.array(df[3][('Performance','Ast')])[-1]
             match['Away Ast'] = np.array(df[5][('Performance','Ast')])[-1]
             
-        return match 
+        return match
+    
+    ################################################################################
+    def scrape_complete_scouting_reports(self, year, league, goalkeepers=False):
+        # Get the player links
+        if goalkeepers:
+            player_links = self.scrape_gk(year, league, player=True)['player_link']
+        else:
+            player_links = self.scrape_standard(year, league, player=True)['player_link']
+        clear_output()
+        
+        # initialize dataframes
+        per90_df = pd.DataFrame()
+        percentiles_df = pd.DataFrame()
+        
+        # gather complete reports and append to dataframes
+        cnt = 0
+        for player_link in player_links:
+            cnt += 1
+            print('{}/{}'.format(cnt, len(player_links)), end='\r')
+            _, per90, percentiles = self.complete_report_from_player_link(player_link)
+            
+            # skip goalkeers or players who don't have a complete report
+            if (type(per90) is int) or (type(percentiles) is int) \
+                    or not goalkeepers and per90['Position'].values[0]=='Goalkeepers':
+                continue
+                
+            # append
+            per90_df = per90_df.append(per90, ignore_index=True)
+            percentiles_df = percentiles_df.append(percentiles, ignore_index=True)
+        
+        return per90_df, percentiles_df
+    
+    ################################################################################
+    def complete_report_from_player_link(self, player_link):
+        # return -1 if the player has no scouting report
+        player_link_html = urlopen(player_link).read().decode('utf8')
+        if 'view complete scouting report' not in player_link_html.lower():
+            return -1, -1, -1
+
+        # Get the link to the complete report
+        self.driver.get(player_link)
+        complete_report_button = self.driver.find_element(
+            By.XPATH, 
+            '/html/body/div[2]/div[6]/div[2]/div[1]/div/div/div[1]/div/ul/li[2]/a'
+        )
+        complete_report_link = complete_report_button.get_attribute('href')
+
+        
+        self.driver.get(complete_report_link)
+
+        # Get the report table
+        complete_report = pd.read_html(complete_report_link)[0]
+        complete_report.columns = complete_report.columns.get_level_values(1)
+        complete_report = pd.concat([pd.DataFrame(data={'Statistic': ['Standard Stats','Statistic'], 
+                                                        'Per 90': ['Standard Stats','Per 90'], 
+                                                        'Percentile': ['Standard Stats', 'Percentile']}),
+                                     complete_report])
+        complete_report.dropna(axis=0, inplace=True)
+        complete_report.reset_index(inplace=True, drop=True)
+
+        # Get the table section headers and stats to make a multiindex
+        header_idxs = [i for i in complete_report.index \
+                       if np.all(complete_report.iloc[i,:]==complete_report.iloc[i,0])]
+        header_idxs.append(complete_report.shape[0])
+        table_headers = list()
+        sub_stats = list()
+        for i in range(len(header_idxs)-1):
+            table_headers.append(complete_report.iloc[header_idxs[i],0])
+            table = complete_report.iloc[header_idxs[i]+2:header_idxs[i+1], :].T
+            sub_stats.append(list(table.iloc[0,:].values)) # sub stats are in first row
+        idx = pd.MultiIndex.from_tuples([(table_headers[i], sub_stats[i][j]) \
+                                         for i in range(len(table_headers)) \
+                                         for j in range(len(sub_stats[i]))])
+        
+        # Initiate the dataframes
+        per90 = pd.DataFrame(data=-1*np.ones([1,len(idx)]), columns=idx)
+        percentiles = pd.DataFrame(data=-1*np.ones([1,len(idx)]), columns=idx)
+        
+        # Populate the dataframes
+        for i in range(len(header_idxs)-1):
+            table_header = complete_report.iloc[header_idxs[i],0]
+            table = complete_report.iloc[header_idxs[i]+2:header_idxs[i+1], :].T
+            table.columns = table.iloc[0,:]
+            table = table.reset_index(drop=True).drop(index=0)
+            for col in table.columns:
+                per90[(table_header,col)] = float(table.loc[1,col].replace('%',''))
+                percentiles[(table_header,col)] = int(table.loc[2,col])
+        
+        # add player names, positions, and minutes played
+        player_name = ' '.join(complete_report_link.split('/')[-1].split('-')[:-2])
+        player_pos = self.driver.find_element(By.XPATH, '//*[@class="filter switcher"]/div/a').text.replace('vs. ', '')
+        minutes = int(self.driver.find_element(By.XPATH, '//*[@class="footer no_hide_long"]/div') \
+                .text \
+                .split(' minutes')[0] \
+                .split(' ')[-1])
+        per90['Player'] = player_name
+        per90['Position'] = player_pos
+        per90['Minutes'] = minutes
+        percentiles['Player'] = player_name
+        percentiles['Position'] = player_pos
+        percentiles['Minutes'] = minutes
+
+        return complete_report, per90, percentiles
         
