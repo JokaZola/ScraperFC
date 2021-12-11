@@ -10,8 +10,48 @@ import pandas as pd
 import numpy as np
 
 
-def check_season(year,league,source):
-    assert source in ['FBRef','Understat','FiveThirtyEight','All', "SofaScore", "WhoScored"]
+def check_season(year, league, source):
+    valid = {
+        'FBRef': {
+            'EPL': 1993,
+            'La Liga': 1989,
+            'Bundesliga': 1989,
+            'Serie A': 1989,
+            'Ligue 1': 1996,
+            'MLS': 1996
+        },
+        'Understat': {
+            'EPL': 2015,
+            'La Liga': 2015,
+            'Bundesliga': 2015,
+            'Serie A': 2015,
+            'Ligue 1': 2015
+        },
+        'FiveThirtyEight': {
+            'EPL': 2017,
+            'La Liga': 2017,
+            'Bundesliga': 2017,
+            'Serie A': 2017,
+            'Ligue 1': 2017
+        },
+        'All': {},
+        'SofaScore': {
+            'USL League One': 2019
+        },
+        'WhoScored': {
+            'EPL': 2010,
+            'La Liga': 2010,
+            'Bundesliga': 2010,
+            'Serie A': 2010,
+            'Ligue 1': 2010,
+            'Argentina Liga Profesional': 2016,
+            'EFL Championship': 2014,
+            'EFL1': 2019,
+            'EFL2': 2019
+        }
+    }
+    
+    assert source in list(valid.keys())
     error = None
     
     # make sure year is an int
@@ -19,56 +59,17 @@ def check_season(year,league,source):
         error = "Year needs to be an integer."
         return error, False
     
-    # make sure league is a valid string
-    if type(league) != str or league not in ["EPL","La Liga","Serie A","Ligue 1","Bundesliga", "USL League One", "MLS", 'Argentina Liga Profesional']:
-        error = "League needs to be a string. Options are \"EPL\", \"La Liga\", \"Bundesliga\", \"Serie A\", " + \
-            "\"Ligue 1\", \"USL League One\", \"MLS\", \"Argentina Liga Profesional\"."
+    # Make sure league is a valid string for the source
+    if type(league)!=str or league not in list(valid[source].keys()):
+        error = 'League must be a string. Options are {}'.format(list(valid[source].keys()))
         return error, False
     
-    # make sure year is valid for a given source
-    yr_valid = True
-    if source=='FBRef':
-        if league=='EPL' and year<1993:
-            error = 'Year invalid for source FBRef, EPL. Must be 1993 or later.'
-            yr_valid = False
-        elif league=='La Liga' and year<1989:
-            error = 'Year invalid for source FBRef, La Liga. Must be 1989 or later.'
-            yr_valid=False
-        elif league=='Bundesliga' and year<1989:
-            error = 'Year invalid for source FBRef, Bundesliga. Must be 1989 or later.'
-            yr_valid=False
-        elif league=='Serie A' and year<1989:
-            error = 'Year invalid for source FBRef, Serie A. Must be 1989 or later.'
-            yr_valid=False
-        elif league=='Ligue 1' and year<1996:
-            error = 'Year invalid for source FBRef, Ligue 1. Must be 1996 or later.'
-            yr_valid=False
-        elif league=="MLS" and year<1996:
-            error = 'Year invalid for source FBRef, MLS. Must be 1996 or later.'
-            yr_valid=False
-
-    elif source=='Understat' and year<2015:
-        error = 'Year invalid for source Understat. Must be 2015 or later.'
-        yr_valid = False
-
-    elif source=='FiveThirtyEight' and year<2017:
-        error = 'Year invalid for source FiveThirtyEight. Must be 2017 or later.'
-        yr_valid = False
-
-    elif source=="SofaScore":
-        if league=="USL League One" and year<2019:
-            error = "Year invalid for source SofaScore and league USL League One. Year must be 2019 or later."
-            yr_valid = False
-
-    elif source == "WhoScored":
-        if league in ["EPL", "La Liga", "Bundesliga", "Serie A", "Ligue 1"] and year<2010:
-            error = "Year invalid for source WhoScored and league {}. Year must be 2010 or later.".format(league)
-            yr_valid = False
-        elif league == 'Argentina Liga Profesional' and year<2016:
-            error = "Year invalid for source WhoScored and league {}. Year must be 2016 or later.".format(league)
-            yr_valid = False
+    # Make sure the source has data from the requested league and year
+    if year < valid[source][league]:
+        error = 'Year invalid for source {} and league {}. Must be {} or later'.format(source, league, valid[source][league])
+        return error, False
     
-    return error, yr_valid
+    return error, True
 
 
 def get_proxy():
