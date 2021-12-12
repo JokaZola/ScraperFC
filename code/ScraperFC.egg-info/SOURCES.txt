@@ -1,5 +1,6 @@
 README.md
 setup.py
+code/ScraperFC/Capology.py
 code/ScraperFC/ClubElo.py
 code/ScraperFC/FBRef.py
 code/ScraperFC/FiveThirtyEight.py

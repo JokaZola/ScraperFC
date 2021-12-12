@@ -48,6 +48,22 @@ def check_season(year, league, source):
             'EFL Championship': 2014,
             'EFL1': 2019,
             'EFL2': 2019
+        },
+        'Capology': {
+            'Bundesliga': 2014,
+            '2.Bundesliga': 2020,
+            'EPL': 2014,
+            'EFL Championship': 2014,
+            'Serie A': 2010,
+            'Serie B': 2020,
+            'La Liga': 2014,
+            'La Liga 2': 2020,
+            'Ligue 1': 2014,
+            'Ligue 2': 2020,
+            'Eredivisie': 2014,
+            'Primeira Liga': 2014,
+            'Scottish PL': 2020,
+            'Super Lig': 2014
         }
     }
     

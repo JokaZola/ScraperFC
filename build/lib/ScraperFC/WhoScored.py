@@ -9,9 +9,7 @@ import time
 from IPython.display import clear_output
 from ScraperFC.shared_functions import *
 import json
-import pandas as pd
 import os
-import traceback
 
 
 class WhoScored():
@@ -61,18 +59,19 @@ class WhoScored():
         else:
             year_str = '{}/{}'.format(year-1, year)
         
+        # Repeatedly try to get the league's homepage
         done = False
         while not done:
             try:
                 self.driver.get(links[league])
                 done = True
             except:
-                import traceback
-                traceback.print_exc()
-                return -1
+                self.close()
+                self.__init__()
+                time.sleep(5)
         print('League page status: {}'.format(self.driver.execute_script('return document.readyState')))
         
-        # Wait for season dropdown to be accessible
+        # Wait for season dropdown to be accessible, then find the link to the chosen season
         for el in self.driver.find_elements(By.TAG_NAME, 'select'):
             if el.get_attribute('id') == 'seasons':
                 for subel in el.find_elements(By.TAG_NAME, 'option'):
@@ -94,6 +93,7 @@ class WhoScored():
             print("Failed to get season link.")
             return -1
         
+        # Repeatedly try to get to the season's homepage
         done = False
         while not done:
             try:
@@ -113,7 +113,7 @@ class WhoScored():
         stage_elements = self.driver.find_elements(By.XPATH, '{}/{}'.format(stage_dropdown_xpath, 'option'))
         stage_urls = ['https://www.whoscored.com'+el.get_attribute('value') for el in stage_elements]
         if len(stage_urls) == 0: # if no stages in dropdown, then the current url is the only stage
-            stage_urls = [self.driver.current_url,]
+            stage_urls = [self.driver.current_url, ]
 
         # Iterate through the stages
         for stage_url in stage_urls:
@@ -122,9 +122,13 @@ class WhoScored():
             self.driver.get(stage_url)
             
             # Go to the fixtures
-            fixtures_button = WebDriverWait(self.driver, 10, ignored_exceptions=[TimeoutException]) \
-                .until(EC.element_to_be_clickable((By.CSS_SELECTOR, 
-                                                   "#sub-navigation > ul:nth-child(1) > li:nth-child(2) > a:nth-child(1)")))
+            fixtures_button = WebDriverWait(
+                self.driver, 
+                10, 
+                ignored_exceptions=[TimeoutException]
+            ).until(EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "#sub-navigation > ul:nth-child(1) > li:nth-child(2) > a:nth-child(1)")
+            ))
             self.driver.execute_script('arguments[0].click()', fixtures_button)
         
             print('{} status: {}'.format(stage_url, 
@@ -146,8 +150,10 @@ class WhoScored():
                 else:
                     self.driver.execute_script('arguments[0].click()', prev_week_button)
                     time.sleep(5)
-                    prev_week_button = WebDriverWait(self.driver, 20) \
-                        .until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.previous')))
+                    prev_week_button = WebDriverWait(
+                        self.driver, 
+                        20
+                    ).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.previous')))
         
         # Convert the set of links to a dict
         match_data_just_links = dict()
@@ -168,6 +174,7 @@ class WhoScored():
         if not valid:
             print(error)
             return -1
+
         # Read match links from file or get them with selenium
         save_filename = '{}_{}_match_data.json'.format(league, year).replace(' ','_')
         if os.path.exists(save_filename):
@@ -177,6 +184,7 @@ class WhoScored():
             match_data = self.get_match_links(year, league)
             if match_data == -1:
                 return -1
+        
         # Scrape match data for each link
         i = 0
         for link in match_data:
@@ -198,6 +206,7 @@ class WhoScored():
                     self.close()
                     self.__init__()
                     time.sleep(5)
+        
         # save output
         with open(save_filename, 'w') as f:
             f.write(json.dumps(match_data))
@@ -207,11 +216,14 @@ class WhoScored():
     def scrape_match(self, link):
         self.driver.get(link)
         scripts = list()
+        
         for el in self.driver.find_elements_by_tag_name('script'):
             scripts.append(el.get_attribute('innerHTML'))
+        
         for script in scripts:
             if 'require.config.params["args"]' in script:
                 match_data_string = script
+        
         match_data_string = match_data_string.split(' = ')[1] \
             .replace('matchId', '"matchId"') \
             .replace('matchCentreData', '"matchCentreData"') \
@@ -219,4 +231,5 @@ class WhoScored():
             .replace('formationIdNameMappings', '"formationIdNameMappings"') \
             .replace(';', '')
         match_data = json.loads(match_data_string)
+        
         return match_data
