@@ -38,7 +38,8 @@ class Capology():
             'Eredivisie': '/ne/eredivisie',
             'Primeira Liga': '/pt/primeira-liga',
             'Scottish PL': '/uk/scottish-premiership',
-            'Super Lig': '/tr/super-lig'
+            'Super Lig': '/tr/super-lig',
+            'Belgian 1st Division': 'be/first-division-a'
         }
 
 
