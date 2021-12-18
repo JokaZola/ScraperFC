@@ -63,7 +63,8 @@ def check_season(year, league, source):
             'Eredivisie': 2014,
             'Primeira Liga': 2014,
             'Scottish PL': 2020,
-            'Super Lig': 2014
+            'Super Lig': 2014,
+            'Belgian 1st Division': 2014
         }
     }
     
