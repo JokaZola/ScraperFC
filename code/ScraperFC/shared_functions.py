@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 
 
+################################################################################
 def check_season(year, league, source):
     valid = {
         'FBRef': {
@@ -47,7 +48,25 @@ def check_season(year, league, source):
             'Argentina Liga Profesional': 2016,
             'EFL Championship': 2014,
             'EFL1': 2019,
-            'EFL2': 2019
+            'EFL2': 2019,
+            # Edd Webster added these leagues (twitter: https://twitter.com/eddwebster)
+            'Liga Nos': 2017,
+            'Eredivisie': 2014,
+            'Russian Premier League': 2014,
+            'Brasileirao': 2013,
+            'MLS': 2013,
+            'Super Lig': 2015,
+            'Jupiler Pro League': 2021,
+            'Bundesliga II': 2016, 
+            'Champions League': 2010,
+            'Europa League': 2013,
+            'FA Cup': 2013,
+            'League Cup': 2013,
+            'World Cup': 2014, # works for WC final stages, add way to scrape qualifiers
+            'European Championship': 2012, # same as world cup, figure out how to deal with qualifiers
+            'AFCON': 2019 # figure out qualifiers
+            # also, for some of the tournaments in progress, there is no end when hitting the previous week button, keeps going back
+            # End Edd Webster leagues
         },
         'Capology': {
             'Bundesliga': 2014,
@@ -83,12 +102,12 @@ def check_season(year, league, source):
     
     # Make sure the source has data from the requested league and year
     if year < valid[source][league]:
-        error = 'Year invalid for source {} and league {}. Must be {} or later'.format(source, league, valid[source][league])
+        error = 'Year invalid for source {} and league {}. Must be {} or later.'.format(source, league, valid[source][league])
         return error, False
     
     return error, True
 
-
+################################################################################
 def get_proxy():
     """ Adapted from https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address """
     options = Options()
@@ -100,7 +119,7 @@ def get_proxy():
     try:
         driver.get("https://sslproxies.org/")
         # on some machines the xpath is "//table[@class='table table-striped table-bordered dataTable']"???
-#         table = driver.find_element_by_xpath("//table[@class='table table-striped table-bordered']")
+        # table = driver.find_element_by_xpath("//table[@class='table table-striped table-bordered']")
         table = driver.find_elements_by_tag_name('table')[0]
         df = pd.read_html(table.get_attribute('outerHTML'))[0]
         df = df.iloc[np.where(~np.isnan(df['Port']))[0],:] # ignore nans

@@ -16,16 +16,13 @@ class WhoScored():
 
     def __init__(self):
         options = Options()
-#         options.add_argument('--headless')
+        # whoscored scraper CANNOT be headless
         options.add_argument('window-size=700,600')
-        # Use proxy
-        proxy = get_proxy()
+        proxy = get_proxy() # Use proxy
         options.add_argument('--proxy-server="http={};https={}"'.format(proxy, proxy))
-        # don't load images
-        prefs = {'profile.managed_default_content_settings.images': 2}
+        prefs = {'profile.managed_default_content_settings.images': 2} # don't load images to make faster
         options.add_experimental_option('prefs', prefs)
-        # create driver
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options) # create driver
         clear_output()
 
         
@@ -51,10 +48,28 @@ class WhoScored():
             'Argentina Liga Profesional': 'https://www.whoscored.com/Regions/11/Tournaments/68/Argentina-Liga-Profesional',
             'EFL Championship': 'https://www.whoscored.com/Regions/252/Tournaments/7/England-Championship',
             'EFL1': 'https://www.whoscored.com/Regions/252/Tournaments/8/England-League-One',
-            'EFL2': 'https://www.whoscored.com/Regions/252/Tournaments/9/England-League-Two'
+            'EFL2': 'https://www.whoscored.com/Regions/252/Tournaments/9/England-League-Two',
+            # Edd Webster added these leagues (twitter: https://twitter.com/eddwebster)
+            'Liga Nos': 'https://www.whoscored.com/Regions/177/Tournaments/21/Portugal-Liga-NOS',
+            'Eredivisie': 'https://www.whoscored.com/Regions/155/Tournaments/13/Netherlands-Eredivisie',
+            'Russian Premier League': 'https://www.whoscored.com/Regions/182/Tournaments/77/Russia-Premier-League',
+            'Brasileirao': 'https://www.whoscored.com/Regions/31/Tournaments/95/Brazil-Brasileir%C3%A3o',
+            'MLS': 'https://www.whoscored.com/Regions/233/Tournaments/85/USA-Major-League-Soccer',
+            'Super Lig': 'https://www.whoscored.com/Regions/225/Tournaments/17/Turkey-Super-Lig',
+            'Jupiler Pro League': 'https://www.whoscored.com/Regions/22/Tournaments/18/Belgium-Jupiler-Pro-League',
+            'Bundesliga II': 'https://www.whoscored.com/Regions/81/Tournaments/6/Germany-Bundesliga-II',
+            'Champions League': 'https://www.whoscored.com/Regions/250/Tournaments/12/Europe-Champions-League',
+            'Europa League': 'https://www.whoscored.com/Regions/250/Tournaments/30/Europe-Europa-League',
+            'FA Cup': 'https://www.whoscored.com/Regions/252/Tournaments/29/England-League-Cup',
+            'League Cup': 'https://www.whoscored.com/Regions/252/Tournaments/29/England-League-Cup',
+            'World Cup': 'https://www.whoscored.com/Regions/247/Tournaments/36/International-FIFA-World-Cup',
+            'European Championship': 'https://www.whoscored.com/Regions/247/Tournaments/124/International-European-Championship',
+            'AFCON': 'https://www.whoscored.com/Regions/247/Tournaments/104/International-Africa-Cup-of-Nations'
+            # End of Edd Webster leagues
         }
         
-        if league == 'Argentina Liga Profesional' and year in [2016,2021]:
+        if (league=='Argentina Liga Profesional' and year in [2016,2021]) \
+                or league in ['Brasileirao','MLS','World Cup','European Championship','AFCON']:
             year_str = str(year)
         else:
             year_str = '{}/{}'.format(year-1, year)
@@ -105,7 +120,7 @@ class WhoScored():
                 time.sleep(5)
         print('Season page status: {}'.format(self.driver.execute_script('return document.readyState')))
         
-        # Gather the links
+        # Gather the links. Make this a set to avoid repeat match links. (e.g. for World Cup)
         links = set()
 
         # Get the season stages and their URLs
@@ -121,6 +136,7 @@ class WhoScored():
             # Go to the stage
             self.driver.get(stage_url)
             
+            """
             # Go to the fixtures
             fixtures_button = WebDriverWait(
                 self.driver, 
@@ -130,6 +146,7 @@ class WhoScored():
                 (By.CSS_SELECTOR, "#sub-navigation > ul:nth-child(1) > li:nth-child(2) > a:nth-child(1)")
             ))
             self.driver.execute_script('arguments[0].click()', fixtures_button)
+            """
         
             print('{} status: {}'.format(stage_url, 
                                          self.driver.execute_script('return document.readyState')))
@@ -144,7 +161,7 @@ class WhoScored():
                         links.add(el.get_attribute('href'))
                 
                 # Determine if there is a previous or not
-                prev_week_button = self.driver.find_element_by_css_selector('.previous')
+                prev_week_button = self.driver.find_element(By.CSS_SELECTOR, '.previous')
                 if 'No data for previous' in prev_week_button.get_attribute('title'):
                     done = True
                 else:
