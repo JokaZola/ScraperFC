@@ -221,7 +221,7 @@ class FBRef:
                 if 'Unnamed' not in col:
                     df[col] = df[col].astype("float")
             # add some calculated columns
-            df[("Performance","G+A")] = df[("Performance","Gls")] - df[("Performance","Ast")]
+            df[("Performance","G+A")] = df[("Performance","Gls")] + df[("Performance","Ast")]
             df[("Performance","G+A-PK")] = df[("Performance","G+A")] - df[("Performance","PK")]
             if year >= 2018:
                 df[("Expected","xG+xA")] = df[("Expected","xG")] + df[("Expected","xA")]
@@ -238,7 +238,7 @@ class FBRef:
                 squad.iloc[:,8:] = squad.iloc[:,8:].divide(squad[("Playing Time","90s")], axis="rows")
                 vs.iloc[:,8:] = vs.iloc[:,8:].divide(vs[("Playing Time","90s")], axis="rows")
             col = ("Performance","G+A")
-            squad[col] = squad[("Performance","Gls")] - squad[("Performance","Ast")]
+            squad[col] = squad[("Performance","Gls")] + squad[("Performance","Ast")]
             vs[col] = vs[("Performance","Gls")] + vs[("Performance","Ast")]
             col = ("Performance","G+A-PK")
             squad[col] = squad[("Performance","G+A")] - squad[("Performance","PK")]
